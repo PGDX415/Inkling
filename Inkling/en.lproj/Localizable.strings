@@ -1,0 +1,89 @@
+/* App Name */
+"app.name" = "Inkling";
+
+/* Splash */
+"splash.subtitle" = "Capture your moments, one word at a time";
+
+/* Tab Bar */
+"tab.journal" = "Journal";
+"tab.calendar" = "Calendar";
+"tab.settings" = "Settings";
+
+/* Journal List */
+"journal.new_entry" = "Write";
+"journal.empty" = "Nothing written yet.\nToday is a good day to begin.";
+"journal.search_placeholder" = "Search your memories";
+"journal.search_no_results" = "Nothing found here";
+"journal.today" = "Today";
+
+/* Journal Detail & Edit */
+"journal.edit" = "Edit";
+"journal.delete" = "Erase";
+"journal.delete_title" = "Erase this entry?";
+"journal.delete_message" = "This can't be undone once it's gone.";
+"journal.delete_confirm" = "Erase";
+"journal.delete_cancel" = "Keep it";
+"journal.saved" = "Quietly saved";
+"journal.empty_content" = "Write something...";
+"journal.word_count" = "%d words";
+"journal.new_entry_title" = "New Entry";
+"journal.edit_entry_title" = "Edit Entry";
+
+/* Lock */
+"lock.title" = "Locked in time";
+"lock.unlock_prompt" = "Tap to return to your entries";
+"lock.unlock" = "Unlock";
+"lock.retry" = "Tap to try again";
+"lock.biometric_reason" = "Unlock to access your journal";
+
+/* Settings */
+"settings.title" = "Settings";
+"settings.section_me" = "Me";
+"settings.profile_name_placeholder" = "Your Name";
+"settings.profile_photo" = "Profile Photo";
+
+"settings.section_privacy" = "Privacy";
+"settings.section_display" = "Display";
+"settings.section_data" = "Data";
+"settings.app_lock" = "Lock Inkling";
+"settings.app_lock_description" = "Require Face ID, Touch ID, or passcode to open the app.";
+"settings.sort_order" = "Sort Order";
+"settings.sort_newest" = "Newest First";
+"settings.sort_oldest" = "Oldest First";
+"settings.export" = "Export";
+"settings.export_description" = "Export all entries as a text file.";
+"settings.import" = "Import";
+"settings.import_description" = "Restore entries from a previously exported text file.";
+"settings.import_success" = "Imported %d entries.";
+"settings.import_skipped" = "Skipped %d duplicate entries.";
+"settings.import_no_entries" = "No entries found in the selected file.";
+"settings.import_failed" = "Failed to read the file. Make sure it is a valid Inkling export.";
+"settings.about" = "About";
+"settings.version" = "Version";
+"settings.syncing" = "Syncing quietly with iCloud";
+"settings.export_success" = "Exported successfully";
+"settings.export_failed" = "Export failed";
+"settings.delete_all" = "Delete All Entries";
+"settings.delete_all_title" = "Erase all entries?";
+"settings.delete_all_confirm" = "Erase All";
+"settings.delete_all_message" = "This action cannot be undone. All your journal entries will be permanently erased.";
+"settings.no_entries_export" = "No entries to export.";
+
+/* Common */
+"common.cancel" = "Cancel";
+"common.save" = "Save";
+"common.done" = "Done";
+"common.back" = "Back";
+
+/* Date */
+"date.today" = "Today";
+"date.yesterday" = "Yesterday";
+"date.tomorrow" = "Tomorrow";
+
+/* Calendar */
+"calendar.title" = "Calendar";
+"calendar.no_entries" = "No entries for this day";
+"calendar.entries_count" = "%d entries";
+
+/* Content Placeholder */
+"editor.placeholder" = "What's on your mind today?";

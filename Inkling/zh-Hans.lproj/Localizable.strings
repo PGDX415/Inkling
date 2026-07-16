@@ -1,0 +1,89 @@
+/* App Name */
+"app.name" = "拾光";
+
+/* Splash */
+"splash.subtitle" = "一字一句，拾起时光";
+
+/* Tab Bar */
+"tab.journal" = "日记";
+"tab.calendar" = "时光之历";
+"tab.settings" = "设置";
+
+/* Journal List */
+"journal.new_entry" = "落笔";
+"journal.empty" = "时光尚未落笔，从今天开始吧";
+"journal.search_placeholder" = "在时光里找一找";
+"journal.search_no_results" = "未曾寻得只言片语";
+"journal.today" = "今日";
+
+/* Journal Detail & Edit */
+"journal.edit" = "编辑";
+"journal.delete" = "抹去";
+"journal.delete_title" = "要抹去这段时光吗？";
+"journal.delete_message" = "一旦抹去，便无法寻回";
+"journal.delete_confirm" = "抹去";
+"journal.delete_cancel" = "留下";
+"journal.saved" = "已悄然记下";
+"journal.empty_content" = "轻触落笔...";
+"journal.word_count" = "共 %d 字";
+"journal.new_entry_title" = "新篇";
+"journal.edit_entry_title" = "编辑";
+
+/* Lock */
+"lock.title" = "时光上锁了";
+"lock.unlock_prompt" = "轻触，回到你的时光";
+"lock.unlock" = "轻触开启";
+"lock.retry" = "再试一次";
+"lock.biometric_reason" = "验证身份以访问日记";
+
+/* Settings */
+"settings.title" = "设置";
+"settings.section_me" = "我";
+"settings.profile_name_placeholder" = "你的名字";
+"settings.profile_photo" = "头像";
+
+"settings.section_privacy" = "隐私";
+"settings.section_display" = "显示";
+"settings.section_data" = "数据";
+"settings.app_lock" = "为日记上锁";
+"settings.app_lock_description" = "开启后需使用面容 ID、触控 ID 或密码解锁应用。";
+"settings.sort_order" = "时光的顺序";
+"settings.sort_newest" = "由近及远";
+"settings.sort_oldest" = "由远及近";
+"settings.export" = "誊抄一份";
+"settings.export_description" = "将所有日记导出为文本文件。";
+"settings.import" = "归入旧卷";
+"settings.import_description" = "从之前导出的文本文件中恢复日记。";
+"settings.import_success" = "已归入 %d 篇日记。";
+"settings.import_skipped" = "跳过 %d 篇重复日记。";
+"settings.import_no_entries" = "在所选文件中未找到日记条目。";
+"settings.import_failed" = "文件读取失败，请确认是有效的拾光导出文件。";
+"settings.about" = "关于";
+"settings.version" = "版本";
+"settings.syncing" = "正在与云端悄悄同步";
+"settings.export_success" = "导出成功";
+"settings.export_failed" = "导出失败";
+"settings.delete_all" = "删除所有日记";
+"settings.delete_all_title" = "要清空所有日记吗？";
+"settings.delete_all_confirm" = "全部抹去";
+"settings.delete_all_message" = "此操作无法撤销，所有日记将被永久抹去。";
+"settings.no_entries_export" = "没有可导出的日记。";
+
+/* Common */
+"common.cancel" = "取消";
+"common.save" = "保存";
+"common.done" = "完成";
+"common.back" = "返回";
+
+/* Date */
+"date.today" = "今天";
+"date.yesterday" = "昨天";
+"date.tomorrow" = "明天";
+
+/* Calendar */
+"calendar.title" = "时光之历";
+"calendar.no_entries" = "此日无记录";
+"calendar.entries_count" = "%d 篇日记";
+
+/* Content Placeholder */
+"editor.placeholder" = "今天想写些什么？";

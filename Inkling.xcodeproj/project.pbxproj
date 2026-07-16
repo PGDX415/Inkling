@@ -95,6 +95,11 @@
 				TargetAttributes = {
 					40678C9730085067001024F3 = {
 						CreatedOnToolsVersion = 26.6;
+						SystemCapabilities = {
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -104,6 +109,7 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = 40678C8F30085067001024F3;
 			minimizedProjectReferenceProxies = 1;
