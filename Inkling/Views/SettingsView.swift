@@ -262,7 +262,17 @@ struct SettingsView: View {
                 text += "[\(DateFormatter.iso8601.string(from: entry.createdAt))] "
                 text += DateFormatter.journalFull.string(from: entry.createdAt) + "\n"
                 text += String(repeating: "─", count: 40) + "\n"
-                text += entry.content + "\n\n"
+                text += entry.content + "\n"
+
+                // Embed photos as Base64
+                if let photos = entry.photos?.sorted(by: { $0.sortOrder < $1.sortOrder }), !photos.isEmpty {
+                    for photo in photos {
+                        let base64 = photo.imageData.base64EncodedString()
+                        text += "[PHOTO]\(base64)[/PHOTO]\n"
+                    }
+                }
+
+                text += "\n"
             }
 
             // Save to temp file and share
@@ -325,6 +335,15 @@ struct SettingsView: View {
                         skippedCount += 1
                     } else {
                         let entry = JournalEntry(content: entryData.content, createdAt: entryData.date)
+                        // Restore photos
+                        if !entryData.photos.isEmpty {
+                            var photoObjects: [JournalPhoto] = []
+                            for (index, photoData) in entryData.photos.enumerated() {
+                                let photo = JournalPhoto(imageData: photoData, sortOrder: index)
+                                photoObjects.append(photo)
+                            }
+                            entry.photos = photoObjects
+                        }
                         modelContext.insert(entry)
                         newCount += 1
                     }
@@ -355,21 +374,32 @@ struct SettingsView: View {
     }
 
     /// Parse the exported text format back into entry data
-    private func parseImportedEntries(from text: String) -> [(date: Date, content: String)] {
-        var entries: [(date: Date, content: String)] = []
+    private func parseImportedEntries(from text: String) -> [(date: Date, content: String, photos: [Data])] {
+        var entries: [(date: Date, content: String, photos: [Data])] = []
 
-        // Split by separator lines (──)
         let lines = text.components(separatedBy: .newlines)
         var currentDate: Date?
         var currentContent: String = ""
+        var currentPhotos: [Data] = []
         var inContent = false
 
         for line in lines {
+            // Detect photo line: [PHOTO]base64[/PHOTO]
+            if line.hasPrefix("[PHOTO]") && line.contains("[/PHOTO]") {
+                let base64 = line
+                    .replacingOccurrences(of: "[PHOTO]", with: "")
+                    .replacingOccurrences(of: "[/PHOTO]", with: "")
+                if let data = Data(base64Encoded: base64), !data.isEmpty {
+                    currentPhotos.append(data)
+                }
+                continue
+            }
+
             // Detect date line: starts with [ISO8601]
             if line.hasPrefix("[") && line.contains("]") {
                 // Save previous entry if we have one
                 if let date = currentDate, !currentContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    entries.append((date: date, content: currentContent.trimmingCharacters(in: .whitespacesAndNewlines)))
+                    entries.append((date: date, content: currentContent.trimmingCharacters(in: .whitespacesAndNewlines), photos: currentPhotos))
                 }
 
                 // Extract ISO date
@@ -377,6 +407,7 @@ struct SettingsView: View {
                     let isoString = String(line[line.index(after: line.startIndex)..<bracketEnd])
                     currentDate = DateFormatter.iso8601.date(from: isoString) ?? DateFormatter.iso8601Full.date(from: isoString)
                     currentContent = ""
+                    currentPhotos = []
                     inContent = true
                 }
                 continue
@@ -405,7 +436,7 @@ struct SettingsView: View {
 
         // Save last entry
         if let date = currentDate, !currentContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            entries.append((date: date, content: currentContent.trimmingCharacters(in: .whitespacesAndNewlines)))
+            entries.append((date: date, content: currentContent.trimmingCharacters(in: .whitespacesAndNewlines), photos: currentPhotos))
         }
 
         return entries
