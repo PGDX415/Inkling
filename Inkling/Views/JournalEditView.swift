@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 /// Editor view for creating or editing a journal entry with auto-save
 struct JournalEditView: View {
@@ -14,6 +15,10 @@ struct JournalEditView: View {
     @State private var entryDate: Date
     @State private var showSavedIndicator = false
     @State private var saveTask: Task<Void, Never>?
+    @State private var entryPhotos: [JournalPhoto] = []
+    @State private var selectedPhotos: [PhotosPickerItem] = []
+
+    private let maxPhotoCount = 5
 
     init(entry: JournalEntry, onDismiss: (() -> Void)? = nil) {
         self.entry = entry
@@ -36,6 +41,12 @@ struct JournalEditView: View {
         VStack(spacing: 0) {
             // Date picker row
             datePickerRow
+
+            Divider()
+                .overlay(Color.brown.opacity(0.2))
+
+            // Photo strip
+            photoStrip
 
             Divider()
                 .overlay(Color.brown.opacity(0.2))
@@ -120,8 +131,14 @@ struct JournalEditView: View {
             }
         }
         .task {
+            // Load existing photos from the entry
+            entryPhotos = entry.photos?.sorted(by: { $0.sortOrder < $1.sortOrder }) ?? []
             try? await Task.sleep(for: .seconds(0.5))
             isFocused = true
+        }
+        .onChange(of: selectedPhotos) { _, items in
+            guard !items.isEmpty else { return }
+            loadPhotos(from: items)
         }
         .onDisappear {
             saveTask?.cancel()
@@ -130,6 +147,58 @@ struct JournalEditView: View {
     }
 
     // MARK: - Subviews
+    private var photoStrip: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(Array(entryPhotos.enumerated()), id: \.element.id) { index, photo in
+                    if let uiImage = UIImage(data: photo.imageData) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 72, height: 72)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .overlay(alignment: .topTrailing) {
+                                Button {
+                                    deletePhoto(at: index)
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.caption)
+                                        .foregroundStyle(.white)
+                                        .background(Circle().fill(Color.black.opacity(0.5)))
+                                }
+                                .padding(4)
+                            }
+                    }
+                }
+
+                if entryPhotos.count < maxPhotoCount {
+                    PhotosPicker(
+                        selection: $selectedPhotos,
+                        maxSelectionCount: maxPhotoCount - entryPhotos.count,
+                        matching: .images
+                    ) {
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.brown.opacity(0.3), lineWidth: 1.5)
+                            .frame(width: 72, height: 72)
+                            .overlay {
+                                VStack(spacing: 4) {
+                                    Image(systemName: "plus")
+                                        .font(.title3)
+                                    Text("journal.photos_add")
+                                        .font(.caption2)
+                                }
+                                .foregroundStyle(.brown.opacity(0.5))
+                            }
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 8)
+        }
+        .frame(height: entryPhotos.isEmpty ? 0 : nil)
+        .opacity(entryPhotos.isEmpty && selectedPhotos.isEmpty ? 0 : 1)
+    }
+
     private var datePickerRow: some View {
         HStack {
             Image(systemName: "calendar")
@@ -206,10 +275,58 @@ struct JournalEditView: View {
         persistContent()
     }
 
+    // MARK: - Photos
+    private func loadPhotos(from items: [PhotosPickerItem]) {
+        Task {
+            for item in items {
+                guard let data = try? await item.loadTransferable(type: Data.self) else { continue }
+                let compressed: Data
+                if let image = UIImage(data: data),
+                   let jpeg = image.jpegData(compressionQuality: 0.7) {
+                    compressed = jpeg
+                } else {
+                    compressed = data
+                }
+                await MainActor.run {
+                    let photo = JournalPhoto(imageData: compressed, sortOrder: entryPhotos.count)
+                    entryPhotos.append(photo)
+                }
+            }
+            await MainActor.run {
+                selectedPhotos = []
+                scheduleAutoSave()
+            }
+        }
+    }
+
+    private func deletePhoto(at index: Int) {
+        entryPhotos.remove(at: index)
+        // Re-index sort orders
+        for i in 0..<entryPhotos.count {
+            entryPhotos[i].sortOrder = i
+        }
+        scheduleAutoSave()
+    }
+
     private func persistContent() {
         entry.content = content
         entry.createdAt = entryDate
         entry.modifiedAt = Date()
+
+        // Sync photos: remove old ones, insert current ones
+        if let existingPhotos = entry.photos {
+            for photo in existingPhotos {
+                if !entryPhotos.contains(where: { $0.id == photo.id }) {
+                    modelContext.delete(photo)
+                }
+            }
+        }
+        entry.photos = entryPhotos.isEmpty ? nil : entryPhotos.map { photo in
+            if photo.modelContext == nil {
+                modelContext.insert(photo)
+            }
+            return photo
+        }
 
         do {
             try modelContext.save()

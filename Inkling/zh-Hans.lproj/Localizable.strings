@@ -86,4 +86,8 @@
 "calendar.entries_count" = "%d 篇日记";
 
 /* Content Placeholder */
+/* Photos */
+"journal.photos_add" = "添加照片";
+"journal.photos_limit" = "最多 5 张";
+
 "editor.placeholder" = "今天想写些什么？";

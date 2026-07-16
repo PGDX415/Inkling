@@ -86,4 +86,8 @@
 "calendar.entries_count" = "%d entries";
 
 /* Content Placeholder */
+/* Photos */
+"journal.photos_add" = "Add Photo";
+"journal.photos_limit" = "Up to 5 photos";
+
 "editor.placeholder" = "What's on your mind today?";

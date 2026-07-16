@@ -16,7 +16,7 @@ struct InklingApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([JournalEntry.self, UserProfile.self])
+        let schema = Schema([JournalEntry.self, JournalPhoto.self, UserProfile.self])
         // Explicitly reference the CloudKit container from entitlements
         let config = ModelConfiguration(
             cloudKitDatabase: .private("iCloud.com.gongdexin.paul.Inkling")

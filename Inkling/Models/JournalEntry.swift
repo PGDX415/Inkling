@@ -7,6 +7,7 @@ final class JournalEntry {
     var createdAt: Date = Date()
     var modifiedAt: Date = Date()
     var content: String = ""
+    @Relationship(deleteRule: .cascade) var photos: [JournalPhoto]? = []
 
     init(content: String = "", createdAt: Date = Date()) {
         self.uuid = UUID().uuidString

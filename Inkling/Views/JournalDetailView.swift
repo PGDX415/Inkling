@@ -22,6 +22,11 @@ struct JournalDetailView: View {
                 // Content
                 contentView
 
+                // Photo gallery
+                if let photos = entry.photos, !photos.isEmpty {
+                    photoGallery(photos: photos.sorted(by: { $0.sortOrder < $1.sortOrder }))
+                }
+
                 // Word count footer
                 wordCountFooter
             }
@@ -99,6 +104,22 @@ struct JournalDetailView: View {
         .lineSpacing(8)
         .foregroundStyle(entry.content.isEmpty ? .tertiary : .primary)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func photoGallery(photos: [JournalPhoto]) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                ForEach(photos, id: \.id) { photo in
+                    if let uiImage = UIImage(data: photo.imageData) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 120, height: 120)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                }
+            }
+        }
     }
 
     private var wordCountFooter: some View {

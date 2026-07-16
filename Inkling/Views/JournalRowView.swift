@@ -24,6 +24,23 @@ struct JournalRowView: View {
 
                 Spacer()
 
+                // Photo indicator
+                if let photos = entry.photos, !photos.isEmpty {
+                    HStack(spacing: 2) {
+                        Image(systemName: "photo")
+                            .font(.caption2)
+                        Text("\(photos.count)")
+                            .font(.caption2)
+                    }
+                    .foregroundStyle(.brown.opacity(0.6))
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.brown.opacity(0.08))
+                    )
+                }
+
                 // Word count badge
                 Text("\(entry.wordCount)")
                     .font(.caption2)
