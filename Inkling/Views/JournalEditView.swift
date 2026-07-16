@@ -195,8 +195,6 @@ struct JournalEditView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 8)
         }
-        .frame(height: entryPhotos.isEmpty ? 0 : nil)
-        .opacity(entryPhotos.isEmpty && selectedPhotos.isEmpty ? 0 : 1)
     }
 
     private var datePickerRow: some View {
