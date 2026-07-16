@@ -9,6 +9,7 @@ struct SettingsView: View {
     @AppStorage("sortOrder") private var sortOrder = SortOrder.newestFirst.rawValue
     @Query private var profiles: [UserProfile]
     @Environment(\.modelContext) private var modelContext
+    @State private var resolvedProfile: UserProfile?
     @State private var showExportAlert = false
     @State private var exportMessage = ""
     @State private var showFileImporter = false
@@ -29,9 +30,9 @@ struct SettingsView: View {
                         TextField(
                             String(localized: "settings.profile_name_placeholder"),
                             text: Binding(
-                                get: { currentProfile.name },
+                                get: { resolveProfile().name },
                                 set: { newValue in
-                                    currentProfile.name = newValue
+                                    resolveProfile().name = newValue
                                     try? modelContext.save()
                                 }
                             )
@@ -169,11 +170,26 @@ struct SettingsView: View {
     }
 
     // MARK: - Profile
-    /// Return the first UserProfile or create one lazily
-    private var currentProfile: UserProfile {
-        if let existing = profiles.first {
-            return existing
+    /// Return the single UserProfile, creating one lazily and merging duplicates from sync
+    private func resolveProfile() -> UserProfile {
+        let matching = profiles.filter { $0.id == UserProfile.fixedID }
+        if let first = matching.first {
+            if matching.count > 1 {
+                // Merge data from CloudKit-synced duplicates before removing them
+                for duplicate in matching.dropFirst() {
+                    if first.name.isEmpty && !duplicate.name.isEmpty {
+                        first.name = duplicate.name
+                    }
+                    if first.photoData == nil && duplicate.photoData != nil {
+                        first.photoData = duplicate.photoData
+                    }
+                    modelContext.delete(duplicate)
+                }
+                try? modelContext.save()
+            }
+            return first
         }
+        // No profile yet — create one (local; CloudKit data may arrive later)
         let new = UserProfile()
         modelContext.insert(new)
         try? modelContext.save()
@@ -184,7 +200,7 @@ struct SettingsView: View {
     private var profilePhotoView: some View {
         PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
             Group {
-                if let photoData = currentProfile.photoData,
+                if let photoData = resolveProfile().photoData,
                    let uiImage = UIImage(data: photoData) {
                     Image(uiImage: uiImage)
                         .resizable()
@@ -217,7 +233,7 @@ struct SettingsView: View {
                 compressed = data
             }
             await MainActor.run {
-                currentProfile.photoData = compressed
+                resolveProfile().photoData = compressed
                 try? modelContext.save()
             }
         }
