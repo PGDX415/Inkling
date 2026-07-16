@@ -7,8 +7,7 @@ import UniformTypeIdentifiers
 struct SettingsView: View {
     @AppStorage("isLockEnabled") private var isLockEnabled = false
     @AppStorage("sortOrder") private var sortOrder = SortOrder.newestFirst.rawValue
-    @AppStorage("userName") private var userName = ""
-    @AppStorage("userPhotoData") private var userPhotoData: Data?
+    @Query private var profiles: [UserProfile]
     @Environment(\.modelContext) private var modelContext
     @State private var showExportAlert = false
     @State private var exportMessage = ""
@@ -29,7 +28,13 @@ struct SettingsView: View {
                         // Name field
                         TextField(
                             String(localized: "settings.profile_name_placeholder"),
-                            text: $userName
+                            text: Binding(
+                                get: { currentProfile.name },
+                                set: { newValue in
+                                    currentProfile.name = newValue
+                                    try? modelContext.save()
+                                }
+                            )
                         )
                         .font(.body)
                     }
@@ -163,11 +168,24 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Profile
+    /// Return the first UserProfile or create one lazily
+    private var currentProfile: UserProfile {
+        if let existing = profiles.first {
+            return existing
+        }
+        let new = UserProfile()
+        modelContext.insert(new)
+        try? modelContext.save()
+        return new
+    }
+
     // MARK: - Profile Photo
     private var profilePhotoView: some View {
         PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
             Group {
-                if let photoData = userPhotoData, let uiImage = UIImage(data: photoData) {
+                if let photoData = currentProfile.photoData,
+                   let uiImage = UIImage(data: photoData) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFill()
@@ -191,15 +209,16 @@ struct SettingsView: View {
         Task {
             guard let data = try? await item.loadTransferable(type: Data.self) else { return }
             // Compress to a reasonable size for storage
+            let compressed: Data
             if let image = UIImage(data: data),
-               let compressed = image.jpegData(compressionQuality: 0.7) {
-                await MainActor.run {
-                    userPhotoData = compressed
-                }
+               let jpeg = image.jpegData(compressionQuality: 0.7) {
+                compressed = jpeg
             } else {
-                await MainActor.run {
-                    userPhotoData = data
-                }
+                compressed = data
+            }
+            await MainActor.run {
+                currentProfile.photoData = compressed
+                try? modelContext.save()
             }
         }
     }
