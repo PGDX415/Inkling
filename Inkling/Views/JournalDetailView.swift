@@ -7,6 +7,7 @@ struct JournalDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showDeleteAlert = false
     @State private var isEditing = false
+    @State private var fullScreenPhoto: JournalPhoto?
 
     let entry: JournalEntry
 
@@ -64,6 +65,9 @@ struct JournalDetailView: View {
         } message: {
             Text("journal.delete_message")
         }
+        .fullScreenCover(item: $fullScreenPhoto) { photo in
+            FullScreenPhotoView(imageData: photo.imageData)
+        }
         .sheet(isPresented: $isEditing) {
             NavigationStack {
                 JournalEditView(entry: entry)
@@ -111,11 +115,15 @@ struct JournalDetailView: View {
             HStack(spacing: 10) {
                 ForEach(photos, id: \.id) { photo in
                     if let uiImage = UIImage(data: photo.imageData) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 120, height: 120)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                        Button {
+                            fullScreenPhoto = photo
+                        } label: {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 120, height: 120)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                        }
                     }
                 }
             }

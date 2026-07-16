@@ -17,6 +17,7 @@ struct JournalEditView: View {
     @State private var saveTask: Task<Void, Never>?
     @State private var entryPhotos: [JournalPhoto] = []
     @State private var selectedPhotos: [PhotosPickerItem] = []
+    @State private var fullScreenPhoto: JournalPhoto?
 
     private let maxPhotoCount = 5
 
@@ -144,6 +145,9 @@ struct JournalEditView: View {
             saveTask?.cancel()
             saveImmediately()
         }
+        .fullScreenCover(item: $fullScreenPhoto) { photo in
+            FullScreenPhotoView(imageData: photo.imageData)
+        }
     }
 
     // MARK: - Subviews
@@ -152,22 +156,26 @@ struct JournalEditView: View {
             HStack(spacing: 8) {
                 ForEach(Array(entryPhotos.enumerated()), id: \.element.id) { index, photo in
                     if let uiImage = UIImage(data: photo.imageData) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 72, height: 72)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                            .overlay(alignment: .topTrailing) {
-                                Button {
-                                    deletePhoto(at: index)
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .font(.caption)
-                                        .foregroundStyle(.white)
-                                        .background(Circle().fill(Color.black.opacity(0.5)))
-                                }
-                                .padding(4)
+                        Button {
+                            fullScreenPhoto = photo
+                        } label: {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 72, height: 72)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .overlay(alignment: .topTrailing) {
+                            Button {
+                                deletePhoto(at: index)
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.white)
+                                    .background(Circle().fill(Color.black.opacity(0.5)))
                             }
+                            .padding(4)
+                        }
                     }
                 }
 
