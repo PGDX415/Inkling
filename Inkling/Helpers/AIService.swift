@@ -124,12 +124,12 @@ actor AIService {
 
     // MARK: - Gemini Flash
     private func callGemini(prompt: String, apiKey: String) async throws -> String {
-        var components = URLComponents(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent")!
-        components.queryItems = [URLQueryItem(name: "key", value: apiKey)]
-
-        var request = URLRequest(url: components.url!)
+        // Use header-based auth (more reliable than query parameter)
+        let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent")!
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
 
         let body: [String: Any] = [
             "contents": [
