@@ -8,7 +8,9 @@ struct SettingsView: View {
     @AppStorage("isLockEnabled") private var isLockEnabled = false
     @AppStorage("sortOrder") private var sortOrder = SortOrder.newestFirst.rawValue
     @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.deepseek.rawValue
-    @AppStorage("aiApiKey") private var aiApiKey = ""
+    @AppStorage("aiApiKey_deepseek") private var deepseekKey = ""
+    @AppStorage("aiApiKey_siliconflow") private var siliconflowKey = ""
+    @AppStorage("aiApiKey_gemini") private var geminiKey = ""
     @Query private var profiles: [UserProfile]
     @Environment(\.modelContext) private var modelContext
     @State private var resolvedProfile: UserProfile?
@@ -62,7 +64,10 @@ struct SettingsView: View {
 
                     SecureField(
                         String(localized: "settings.ai_api_key_placeholder"),
-                        text: $aiApiKey
+                        text: Binding(
+                            get: { currentProviderKey },
+                            set: { setCurrentProviderKey($0) }
+                        )
                     )
                 } header: {
                     Text("settings.section_ai")
@@ -190,6 +195,27 @@ struct SettingsView: View {
             } icon: {
                 Image(systemName: "gearshape")
             }
+        }
+    }
+
+    // MARK: - AI Key Management
+    private var currentProvider: AIProvider {
+        AIProvider(rawValue: aiProviderRaw) ?? .deepseek
+    }
+
+    private var currentProviderKey: String {
+        switch currentProvider {
+        case .deepseek: return deepseekKey
+        case .siliconflow: return siliconflowKey
+        case .gemini: return geminiKey
+        }
+    }
+
+    private func setCurrentProviderKey(_ value: String) {
+        switch currentProvider {
+        case .deepseek: deepseekKey = value
+        case .siliconflow: siliconflowKey = value
+        case .gemini: geminiKey = value
         }
     }
 

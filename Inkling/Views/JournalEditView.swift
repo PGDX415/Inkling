@@ -22,7 +22,9 @@ struct JournalEditView: View {
     @State private var polishError: String?
 
     @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.deepseek.rawValue
-    @AppStorage("aiApiKey") private var aiApiKey = ""
+    @AppStorage("aiApiKey_deepseek") private var deepseekKey = ""
+    @AppStorage("aiApiKey_siliconflow") private var siliconflowKey = ""
+    @AppStorage("aiApiKey_gemini") private var geminiKey = ""
 
     private let maxPhotoCount = 5
 
@@ -121,7 +123,7 @@ struct JournalEditView: View {
                     Spacer()
 
                     // AI Polish button
-                    if !aiApiKey.isEmpty && !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    if !currentProviderKey.isEmpty && !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         Button {
                             polishContent()
                         } label: {
@@ -347,15 +349,24 @@ struct JournalEditView: View {
         scheduleAutoSave()
     }
 
+    // MARK: - AI Key
+    private var currentProviderKey: String {
+        switch AIProvider(rawValue: aiProviderRaw) ?? .deepseek {
+        case .deepseek: return deepseekKey
+        case .siliconflow: return siliconflowKey
+        case .gemini: return geminiKey
+        }
+    }
+
     // MARK: - AI Polish
     private func polishContent() {
-        guard !aiApiKey.isEmpty else { return }
+        let key = currentProviderKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !key.isEmpty else { return }
         let textToPolish = content
         isPolishing = true
         polishError = nil
 
         let provider = AIProvider(rawValue: aiProviderRaw) ?? .deepseek
-        let key = aiApiKey.trimmingCharacters(in: .whitespacesAndNewlines)
 
         Task {
             do {
