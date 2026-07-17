@@ -39,7 +39,7 @@ actor AIService {
 
     // MARK: - DeepSeek official API
     private func callDeepSeek(prompt: String, apiKey: String) async throws -> String {
-        let url = URL(string: "https://api.deepseek.com/chat/completions")!
+        let url = URL(string: "https://api.deepseek.com/v1/chat/completions")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

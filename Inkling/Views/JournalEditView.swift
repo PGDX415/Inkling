@@ -21,7 +21,7 @@ struct JournalEditView: View {
     @State private var isPolishing = false
     @State private var polishError: String?
 
-    @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.siliconflow.rawValue
+    @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.deepseek.rawValue
     @AppStorage("aiApiKey") private var aiApiKey = ""
 
     private let maxPhotoCount = 5
@@ -354,8 +354,8 @@ struct JournalEditView: View {
         isPolishing = true
         polishError = nil
 
-        let provider = AIProvider(rawValue: aiProviderRaw) ?? .siliconflow
-        let key = aiApiKey
+        let provider = AIProvider(rawValue: aiProviderRaw) ?? .deepseek
+        let key = aiApiKey.trimmingCharacters(in: .whitespacesAndNewlines)
 
         Task {
             do {

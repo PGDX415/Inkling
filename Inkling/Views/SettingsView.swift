@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 struct SettingsView: View {
     @AppStorage("isLockEnabled") private var isLockEnabled = false
     @AppStorage("sortOrder") private var sortOrder = SortOrder.newestFirst.rawValue
-    @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.siliconflow.rawValue
+    @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.deepseek.rawValue
     @AppStorage("aiApiKey") private var aiApiKey = ""
     @Query private var profiles: [UserProfile]
     @Environment(\.modelContext) private var modelContext
