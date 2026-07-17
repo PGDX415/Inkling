@@ -1,11 +1,13 @@
 import Foundation
 
 enum AIProvider: String, CaseIterable {
+    case deepseek = "deepseek"
     case siliconflow = "siliconflow"
     case gemini = "gemini"
 
     var displayName: String {
         switch self {
+        case .deepseek: return "DeepSeek (官方)"
         case .siliconflow: return "SiliconFlow (DeepSeek-V3)"
         case .gemini: return "Gemini 2.0 Flash"
         }
@@ -26,11 +28,55 @@ actor AIService {
     func polish(text: String, provider: AIProvider, apiKey: String) async throws -> String {
         let prompt = String(format: polishPrompt, text)
         switch provider {
+        case .deepseek:
+            return try await callDeepSeek(prompt: prompt, apiKey: apiKey)
         case .siliconflow:
             return try await callSiliconFlow(prompt: prompt, apiKey: apiKey)
         case .gemini:
             return try await callGemini(prompt: prompt, apiKey: apiKey)
         }
+    }
+
+    // MARK: - DeepSeek official API
+    private func callDeepSeek(prompt: String, apiKey: String) async throws -> String {
+        let url = URL(string: "https://api.deepseek.com/chat/completions")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+
+        let body: [String: Any] = [
+            "model": "deepseek-chat",
+            "messages": [
+                ["role": "user", "content": prompt]
+            ],
+            "temperature": 0.7,
+            "max_tokens": 4096,
+            "stream": false
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AIError.serverError(statusCode: 0)
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            let errorMessage: String
+            if let errorBody = try? JSONDecoder().decode(SiliconFlowErrorResponse.self, from: data) {
+                errorMessage = errorBody.error.message
+            } else {
+                errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+            }
+            throw AIError.apiError(statusCode: httpResponse.statusCode, message: errorMessage)
+        }
+
+        let decoded = try JSONDecoder().decode(SiliconFlowResponse.self, from: data)
+        guard let content = decoded.choices.first?.message.content else {
+            throw AIError.noResponse
+        }
+        return content.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     // MARK: - SiliconFlow (OpenAI-compatible)
