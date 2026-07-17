@@ -124,8 +124,10 @@ actor AIService {
 
     // MARK: - Gemini Flash
     private func callGemini(prompt: String, apiKey: String) async throws -> String {
-        let url = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=\(apiKey)")!
-        var request = URLRequest(url: url)
+        var components = URLComponents(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent")!
+        components.queryItems = [URLQueryItem(name: "key", value: apiKey)]
+
+        var request = URLRequest(url: components.url!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
@@ -147,7 +149,13 @@ actor AIService {
         }
 
         guard (200...299).contains(httpResponse.statusCode) else {
-            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+            // Try to parse error detail from response body
+            let errorMessage: String
+            if let errorBody = try? JSONDecoder().decode(GeminiErrorResponse.self, from: data) {
+                errorMessage = "\(errorBody.error.message) (status: \(errorBody.error.status))"
+            } else {
+                errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+            }
             throw AIError.apiError(statusCode: httpResponse.statusCode, message: errorMessage)
         }
 
@@ -195,6 +203,15 @@ private struct SiliconFlowResponse: Codable {
     struct Message: Codable {
         let content: String
     }
+}
+
+private struct GeminiErrorResponse: Codable {
+    struct ErrorDetail: Codable {
+        let code: Int
+        let message: String
+        let status: String
+    }
+    let error: ErrorDetail
 }
 
 private struct GeminiResponse: Codable {
