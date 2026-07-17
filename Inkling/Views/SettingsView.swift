@@ -14,6 +14,7 @@ struct SettingsView: View {
     @Query private var profiles: [UserProfile]
     @Environment(\.modelContext) private var modelContext
     @State private var resolvedProfile: UserProfile?
+    @FocusState private var isApiKeyFocused: Bool
     @State private var showExportAlert = false
     @State private var exportMessage = ""
     @State private var showFileImporter = false
@@ -69,6 +70,7 @@ struct SettingsView: View {
                             set: { setCurrentProviderKey($0) }
                         )
                     )
+                    .focused($isApiKeyFocused)
                 } header: {
                     Text("settings.section_ai")
                 }
@@ -171,6 +173,17 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("settings.title")
+            .toolbar {
+                ToolbarItem(placement: .keyboard) {
+                    HStack {
+                        Spacer()
+                        Button(String(localized: "common.done")) {
+                            isApiKeyFocused = false
+                        }
+                        .fontWeight(.medium)
+                    }
+                }
+            }
             .alert(exportMessage, isPresented: $showExportAlert) {
                 Button("common.done") {}
             }
