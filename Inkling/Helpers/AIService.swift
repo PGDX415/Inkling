@@ -54,9 +54,19 @@ actor AIService {
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw AIError.serverError(statusCode: (response as? HTTPURLResponse)?.statusCode ?? 0)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AIError.serverError(statusCode: 0)
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            // Try to parse error detail from response body
+            let errorMessage: String
+            if let errorBody = try? JSONDecoder().decode(SiliconFlowErrorResponse.self, from: data) {
+                errorMessage = errorBody.error.message
+            } else {
+                errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+            }
+            throw AIError.apiError(statusCode: httpResponse.statusCode, message: errorMessage)
         }
 
         let decoded = try JSONDecoder().decode(SiliconFlowResponse.self, from: data)
@@ -86,9 +96,13 @@ actor AIService {
 
         let (data, response) = try await URLSession.shared.data(for: request)
 
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw AIError.serverError(statusCode: (response as? HTTPURLResponse)?.statusCode ?? 0)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AIError.serverError(statusCode: 0)
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw AIError.apiError(statusCode: httpResponse.statusCode, message: errorMessage)
         }
 
         let decoded = try JSONDecoder().decode(GeminiResponse.self, from: data)
@@ -101,12 +115,15 @@ actor AIService {
 
 enum AIError: LocalizedError {
     case serverError(statusCode: Int)
+    case apiError(statusCode: Int, message: String)
     case noResponse
 
     var errorDescription: String? {
         switch self {
         case .serverError(let code):
             return "Server error (\(code))"
+        case .apiError(let code, let message):
+            return "API error \(code): \(message)"
         case .noResponse:
             return "No response from AI"
         }
@@ -114,6 +131,14 @@ enum AIError: LocalizedError {
 }
 
 // MARK: - API Response Models
+private struct SiliconFlowErrorResponse: Codable {
+    struct ErrorDetail: Codable {
+        let message: String
+        let type: String?
+    }
+    let error: ErrorDetail
+}
+
 private struct SiliconFlowResponse: Codable {
     let choices: [Choice]
 
