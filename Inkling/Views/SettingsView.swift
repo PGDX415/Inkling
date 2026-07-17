@@ -7,6 +7,8 @@ import UniformTypeIdentifiers
 struct SettingsView: View {
     @AppStorage("isLockEnabled") private var isLockEnabled = false
     @AppStorage("sortOrder") private var sortOrder = SortOrder.newestFirst.rawValue
+    @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.siliconflow.rawValue
+    @AppStorage("aiApiKey") private var aiApiKey = ""
     @Query private var profiles: [UserProfile]
     @Environment(\.modelContext) private var modelContext
     @State private var resolvedProfile: UserProfile?
@@ -42,6 +44,28 @@ struct SettingsView: View {
                     .padding(.vertical, 8)
                 } header: {
                     Text("settings.section_me")
+                }
+
+                // MARK: - AI Section
+                Section {
+                    Picker(selection: $aiProviderRaw) {
+                        ForEach(AIProvider.allCases, id: \.rawValue) { provider in
+                            Text(provider.displayName).tag(provider.rawValue)
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "sparkles")
+                                .foregroundStyle(.brown)
+                            Text("settings.ai_provider")
+                        }
+                    }
+
+                    SecureField(
+                        String(localized: "settings.ai_api_key_placeholder"),
+                        text: $aiApiKey
+                    )
+                } header: {
+                    Text("settings.section_ai")
                 }
 
                 // MARK: - Security Section

@@ -42,6 +42,13 @@
 "settings.profile_name_placeholder" = "你的名字";
 "settings.profile_photo" = "头像";
 
+"settings.section_ai" = "AI 润色";
+"settings.ai_provider" = "服务商";
+"settings.ai_api_key" = "API 密钥";
+"settings.ai_api_key_placeholder" = "输入你的 API 密钥";
+"journal.polish" = "润色";
+"journal.polishing" = "正在润色...";
+
 "settings.section_privacy" = "隐私";
 "settings.section_display" = "显示";
 "settings.section_data" = "数据";

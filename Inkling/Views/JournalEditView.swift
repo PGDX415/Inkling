@@ -18,6 +18,11 @@ struct JournalEditView: View {
     @State private var entryPhotos: [JournalPhoto] = []
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var fullScreenPhoto: JournalPhoto?
+    @State private var isPolishing = false
+    @State private var polishError: String?
+
+    @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.siliconflow.rawValue
+    @AppStorage("aiApiKey") private var aiApiKey = ""
 
     private let maxPhotoCount = 5
 
@@ -108,14 +113,34 @@ struct JournalEditView: View {
 
             ToolbarItem(placement: .keyboard) {
                 HStack {
-                    Spacer()
-
                     // Word count
                     Text(String(format: String(localized: "journal.word_count"), wordCount))
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
                     Spacer()
+
+                    // AI Polish button
+                    if !aiApiKey.isEmpty && !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Button {
+                            polishContent()
+                        } label: {
+                            HStack(spacing: 4) {
+                                if isPolishing {
+                                    ProgressView()
+                                        .scaleEffect(0.7)
+                                } else {
+                                    Image(systemName: "sparkles")
+                                }
+                                Text(isPolishing
+                                     ? String(localized: "journal.polishing")
+                                     : String(localized: "journal.polish"))
+                                    .font(.caption)
+                            }
+                        }
+                        .disabled(isPolishing)
+                        .tint(.brown)
+                    }
 
                     Button(String(localized: "common.done")) {
                         isFocused = false
@@ -147,6 +172,14 @@ struct JournalEditView: View {
         }
         .fullScreenCover(item: $fullScreenPhoto) { photo in
             FullScreenPhotoView(imageData: photo.imageData)
+        }
+        .alert("AI 润色失败", isPresented: Binding(
+            get: { polishError != nil },
+            set: { if !$0 { polishError = nil } }
+        )) {
+            Button("common.done") { polishError = nil }
+        } message: {
+            Text(polishError ?? "")
         }
     }
 
@@ -312,6 +345,37 @@ struct JournalEditView: View {
             entryPhotos[i].sortOrder = i
         }
         scheduleAutoSave()
+    }
+
+    // MARK: - AI Polish
+    private func polishContent() {
+        guard !aiApiKey.isEmpty else { return }
+        let textToPolish = content
+        isPolishing = true
+        polishError = nil
+
+        let provider = AIProvider(rawValue: aiProviderRaw) ?? .siliconflow
+        let key = aiApiKey
+
+        Task {
+            do {
+                let polished = try await AIService.shared.polish(
+                    text: textToPolish,
+                    provider: provider,
+                    apiKey: key
+                )
+                await MainActor.run {
+                    content = polished
+                    isPolishing = false
+                    scheduleAutoSave()
+                }
+            } catch {
+                await MainActor.run {
+                    polishError = error.localizedDescription
+                    isPolishing = false
+                }
+            }
+        }
     }
 
     private func persistContent() {
