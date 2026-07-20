@@ -97,4 +97,15 @@
 "journal.photos_add" = "添加照片";
 "journal.photos_limit" = "最多 5 张";
 
+/* Font Settings */
+"settings.section_font" = "字体";
+"settings.font_style" = "字体样式";
+"settings.font_size" = "字号";
+"font.songti" = "宋体";
+"font.songti_desc" = "古典衬线，温润雅致";
+"font.kaiti" = "楷体";
+"font.kaiti_desc" = "手书笔意，亲切自然";
+"font.pingfang" = "苹方";
+"font.pingfang_desc" = "现代无衬线，简洁清爽";
+
 "editor.placeholder" = "今天想写些什么？";

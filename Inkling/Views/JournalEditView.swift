@@ -25,6 +25,8 @@ struct JournalEditView: View {
     @AppStorage("aiApiKey_deepseek") private var deepseekKey = ""
     @AppStorage("aiApiKey_siliconflow") private var siliconflowKey = ""
     @AppStorage("aiApiKey_gemini") private var geminiKey = ""
+    @AppStorage("fontStyle") private var fontStyle = FontStyle.songti.rawValue
+    @AppStorage("fontSize") private var fontSize: Double = 18.0
 
     private let maxPhotoCount = 5
 
@@ -35,14 +37,10 @@ struct JournalEditView: View {
         _entryDate = State(initialValue: entry.createdAt)
     }
 
-    /// Choose serif font based on system language
-    private var serifFontName: String {
-        let language = Locale.preferredLanguages.first ?? "en"
-        if language.hasPrefix("zh") {
-            return "Songti SC"
-        } else {
-            return "Georgia"
-        }
+    /// Compute journal font from saved settings
+    private var journalFont: Font {
+        let style = FontStyle(rawValue: fontStyle) ?? .songti
+        return .custom(style.fontName, size: fontSize)
     }
 
     var body: some View {
@@ -63,7 +61,7 @@ struct JournalEditView: View {
             ZStack(alignment: .topLeading) {
                 if content.isEmpty {
                     Text("editor.placeholder")
-                        .font(.custom(serifFontName, size: 18, relativeTo: .body))
+                        .font(journalFont)
                         .lineSpacing(8)
                         .foregroundStyle(.tertiary)
                         .padding(.horizontal, 24)
@@ -72,7 +70,7 @@ struct JournalEditView: View {
                 }
 
                 TextEditor(text: $content)
-                    .font(.custom(serifFontName, size: 18, relativeTo: .body))
+                    .font(journalFont)
                     .lineSpacing(8)
                     .scrollContentBackground(.hidden)
                     .background(Color("JournalBackground"))

@@ -232,7 +232,7 @@ struct JournalListView: View {
                 ForEach(groupedEntries, id: \.month) { group in
                     Section {
                         ForEach(group.entries) { entry in
-                            JournalRowView(entry: entry)
+                            JournalRowView(entry: entry, searchText: viewModel.searchText)
                                 .tag(entry.uuid)
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button(role: .destructive) {

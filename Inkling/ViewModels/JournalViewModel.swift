@@ -42,12 +42,15 @@ final class JournalViewModel {
     }
 
     /// Highlight search terms in a text string
-    func highlightSearchTerms(in text: String) -> AttributedString {
+    static func highlightSearchTerms(in text: String, query: String, font: Font = .body, foregroundColor: Color = .primary) -> AttributedString {
         var attributed = AttributedString(text)
-        guard !searchText.isEmpty else { return attributed }
+        attributed.font = font
+        attributed.foregroundColor = foregroundColor
+
+        guard !query.isEmpty else { return attributed }
 
         let lowercasedText = text.lowercased()
-        let lowercasedSearch = searchText.lowercased()
+        let lowercasedSearch = query.lowercased()
 
         var searchRange = lowercasedText.startIndex..<lowercasedText.endIndex
         while let range = lowercasedText.range(
@@ -62,9 +65,8 @@ final class JournalViewModel {
                 NSRange(location: start, length: length),
                 in: attributed
             ) {
-                attributed[attrRange].backgroundColor = UIColor.systemYellow.withAlphaComponent(0.3)
-                attributed[attrRange].foregroundColor = .primary
-                attributed[attrRange].font = .body.bold()
+                attributed[attrRange].backgroundColor = .yellow.opacity(0.3)
+                attributed[attrRange].font = font.bold()
             }
 
             searchRange = range.upperBound..<lowercasedText.endIndex

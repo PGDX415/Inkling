@@ -97,4 +97,15 @@
 "journal.photos_add" = "Add Photo";
 "journal.photos_limit" = "Up to 5 photos";
 
+/* Font Settings */
+"settings.section_font" = "Font";
+"settings.font_style" = "Font Style";
+"settings.font_size" = "Font Size";
+"font.songti" = "Songti";
+"font.songti_desc" = "Elegant serif, warm and classic";
+"font.kaiti" = "Kaiti";
+"font.kaiti_desc" = "Calligraphic style, personal touch";
+"font.pingfang" = "PingFang";
+"font.pingfang_desc" = "Modern sans-serif, clean and crisp";
+
 "editor.placeholder" = "What's on your mind today?";

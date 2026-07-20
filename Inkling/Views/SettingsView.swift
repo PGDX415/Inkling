@@ -11,6 +11,8 @@ struct SettingsView: View {
     @AppStorage("aiApiKey_deepseek") private var deepseekKey = ""
     @AppStorage("aiApiKey_siliconflow") private var siliconflowKey = ""
     @AppStorage("aiApiKey_gemini") private var geminiKey = ""
+    @AppStorage("fontStyle") private var fontStyle = FontStyle.songti.rawValue
+    @AppStorage("fontSize") private var fontSize: Double = 18.0
     @Query private var profiles: [UserProfile]
     @Environment(\.modelContext) private var modelContext
     @State private var resolvedProfile: UserProfile?
@@ -115,6 +117,85 @@ struct SettingsView: View {
                     }
                 } header: {
                     Text("settings.section_display")
+                }
+
+                // MARK: - Font Section
+                Section {
+                    VStack(spacing: 16) {
+                        // Font style selector
+                        VStack(spacing: 8) {
+                            ForEach(FontStyle.allCases, id: \.rawValue) { style in
+                                Button {
+                                    fontStyle = style.rawValue
+                                } label: {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(style.displayName)
+                                                .font(.subheadline)
+                                                .foregroundStyle(.primary)
+                                            Text(style.description)
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                        Spacer()
+                                        if fontStyle == style.rawValue {
+                                            Image(systemName: "checkmark")
+                                                .foregroundStyle(.brown)
+                                                .fontWeight(.medium)
+                                        }
+                                    }
+                                    .padding(.vertical, 4)
+                                }
+                                .buttonStyle(.plain)
+
+                                // Font preview
+                                Text(style.sampleText)
+                                    .font(.custom(style.fontName, size: 16))
+                                    .lineSpacing(6)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(12)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(Color("JournalBackground"))
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.brown.opacity(0.15), lineWidth: 1)
+                                    )
+                            }
+                        }
+
+                        Divider()
+
+                        // Font size slider
+                        VStack(spacing: 8) {
+                            HStack {
+                                Text("settings.font_size")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                                Spacer()
+                                Text("\(Int(fontSize))pt")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Slider(value: $fontSize, in: 14...24, step: 1)
+                                .tint(.brown)
+
+                            HStack {
+                                Text("A")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                                Text("A")
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .padding(.vertical, 8)
+                } header: {
+                    Text("settings.section_font")
                 }
 
                 // MARK: - Data Section

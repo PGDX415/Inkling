@@ -5,11 +5,18 @@ import SwiftData
 struct JournalDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("fontStyle") private var fontStyle = FontStyle.songti.rawValue
+    @AppStorage("fontSize") private var fontSize: Double = 18.0
     @State private var showDeleteAlert = false
     @State private var isEditing = false
     @State private var fullScreenPhoto: JournalPhoto?
 
     let entry: JournalEntry
+
+    private var journalFont: Font {
+        let style = FontStyle(rawValue: fontStyle) ?? .songti
+        return .custom(style.fontName, size: fontSize)
+    }
 
     var body: some View {
         ScrollView {
@@ -104,7 +111,7 @@ struct JournalDetailView: View {
              ? String(localized: "journal.empty_content")
              : entry.content
         )
-        .font(.custom(serifFontName, size: 18, relativeTo: .body))
+        .font(journalFont)
         .lineSpacing(8)
         .foregroundStyle(entry.content.isEmpty ? .tertiary : .primary)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -137,16 +144,6 @@ struct JournalDetailView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.top, 8)
-        }
-    }
-
-    /// Choose serif font based on system language
-    private var serifFontName: String {
-        let language = Locale.preferredLanguages.first ?? "en"
-        if language.hasPrefix("zh") {
-            return "Songti SC"
-        } else {
-            return "Georgia"
         }
     }
 

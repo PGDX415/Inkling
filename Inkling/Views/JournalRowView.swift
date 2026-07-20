@@ -3,6 +3,7 @@ import SwiftUI
 /// A single journal entry row in the list
 struct JournalRowView: View {
     let entry: JournalEntry
+    var searchText: String = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -61,30 +62,47 @@ struct JournalRowView: View {
             }
 
             // Title (first line)
-            if !entry.title.isEmpty {
-                Text(entry.title)
-                    .font(.headline)
-                    .fontWeight(.regular)
-                    .lineLimit(1)
-                    .foregroundStyle(.primary)
-            } else {
-                Text("(Untitled)")
-                    .font(.headline)
-                    .fontWeight(.regular)
-                    .foregroundStyle(.tertiary)
-                    .italic()
-            }
+            titleView
 
             // Content preview
-            if !entry.preview.isEmpty {
-                Text(entry.preview)
-                    .font(.subheadline)
-                    .lineLimit(2)
-                    .foregroundStyle(.secondary)
-                    .lineSpacing(4)
-            }
+            previewView
         }
         .padding(.vertical, 6)
+    }
+
+    // MARK: - Title with optional search highlight
+    @ViewBuilder
+    private var titleView: some View {
+        if !entry.title.isEmpty {
+            Text(JournalViewModel.highlightSearchTerms(
+                in: entry.title,
+                query: searchText,
+                font: .headline.weight(.regular),
+                foregroundColor: .primary
+            ))
+            .lineLimit(1)
+        } else {
+            Text("(Untitled)")
+                .font(.headline)
+                .fontWeight(.regular)
+                .foregroundStyle(.tertiary)
+                .italic()
+        }
+    }
+
+    // MARK: - Preview with optional search highlight
+    @ViewBuilder
+    private var previewView: some View {
+        if !entry.preview.isEmpty {
+            Text(JournalViewModel.highlightSearchTerms(
+                in: entry.preview,
+                query: searchText,
+                font: .subheadline,
+                foregroundColor: .secondary
+            ))
+            .lineLimit(2)
+            .lineSpacing(4)
+        }
     }
 }
 
