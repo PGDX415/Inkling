@@ -113,7 +113,6 @@ struct JournalEditView: View {
 
             ToolbarItem(placement: .keyboard) {
                 HStack {
-                    // Word count
                     Text(String(format: String(localized: "journal.word_count"), wordCount))
                         .font(.caption)
                         .foregroundStyle(.secondary)

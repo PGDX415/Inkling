@@ -25,10 +25,9 @@ final class JournalEntry {
         return String(firstLine.prefix(50))
     }
 
-    /// Content preview for list display (first 2 lines)
+    /// Content preview for list display (first 2 lines after title)
     var preview: String {
         let lines = content.split(separator: "\n", omittingEmptySubsequences: true)
-        // skip the first line if it's already shown as title
         if lines.count > 1 {
             return String(lines.dropFirst().prefix(2).joined(separator: "\n").prefix(80))
         }
