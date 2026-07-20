@@ -9,7 +9,7 @@ struct JournalRowView: View {
             // Date & Time
             HStack {
                 HStack(spacing: 4) {
-                    Text(entry.createdAt, style: .date)
+                    Text(DateFormatter.journalShortDate.string(from: entry.createdAt))
                         .font(.subheadline)
                         .fontWeight(.medium)
                         .foregroundStyle(.primary)
@@ -20,6 +20,13 @@ struct JournalRowView: View {
                     Text(entry.createdAt, style: .time)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+
+                    Text("·")
+                        .foregroundStyle(.secondary)
+
+                    Text(DateFormatter.weekdayShort.string(from: entry.createdAt))
+                        .font(.subheadline)
+                        .foregroundStyle(.brown)
                 }
 
                 Spacer()

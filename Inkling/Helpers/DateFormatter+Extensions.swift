@@ -32,6 +32,13 @@ extension DateFormatter {
         return formatter
     }()
 
+    /// Short date for list rows: e.g. "7月20日" / "Jul 20"
+    static let journalShortDate: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.setLocalizedDateFormatFromTemplate("MMMd")
+        return formatter
+    }()
+
     /// Weekday short: e.g. "Mon"
     static let weekdayShort: DateFormatter = {
         let formatter = DateFormatter()
