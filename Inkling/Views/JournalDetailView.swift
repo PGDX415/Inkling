@@ -7,8 +7,14 @@ struct JournalDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("fontStyle") private var fontStyle = FontStyle.songti.rawValue
     @AppStorage("fontSize") private var fontSize: Double = 18.0
+    @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.deepseek.rawValue
+    @AppStorage("aiApiKey_deepseek") private var deepseekKey = ""
+    @AppStorage("aiApiKey_siliconflow") private var siliconflowKey = ""
+    @AppStorage("aiApiKey_gemini") private var geminiKey = ""
     @State private var showDeleteAlert = false
     @State private var isEditing = false
+    @State private var isPolishing = false
+    @State private var polishError: String?
     @State private var fullScreenPhoto: JournalPhoto?
 
     let entry: JournalEntry
@@ -46,6 +52,22 @@ struct JournalDetailView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 16) {
+                    // AI Polish button
+                    if !currentProviderKey.isEmpty && !entry.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Button {
+                            polishContent()
+                        } label: {
+                            if isPolishing {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            } else {
+                                Image(systemName: "sparkles")
+                            }
+                        }
+                        .disabled(isPolishing)
+                        .tint(.brown)
+                    }
+
                     Button {
                         isEditing = true
                     } label: {
@@ -71,6 +93,14 @@ struct JournalDetailView: View {
             }
         } message: {
             Text("journal.delete_message")
+        }
+        .alert("AI 润色失败", isPresented: Binding(
+            get: { polishError != nil },
+            set: { if !$0 { polishError = nil } }
+        )) {
+            Button("common.done") { polishError = nil }
+        } message: {
+            Text(polishError ?? "")
         }
         .fullScreenCover(item: $fullScreenPhoto) { photo in
             FullScreenPhotoView(imageData: photo.imageData)
@@ -144,6 +174,45 @@ struct JournalDetailView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.top, 8)
+        }
+    }
+
+    // MARK: - AI Polish
+    private var currentProviderKey: String {
+        switch AIProvider(rawValue: aiProviderRaw) ?? .deepseek {
+        case .deepseek: return deepseekKey
+        case .siliconflow: return siliconflowKey
+        case .gemini: return geminiKey
+        }
+    }
+
+    private func polishContent() {
+        let key = currentProviderKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !key.isEmpty else { return }
+        let provider = AIProvider(rawValue: aiProviderRaw) ?? .deepseek
+        let textToPolish = entry.content
+
+        isPolishing = true
+        polishError = nil
+
+        Task {
+            do {
+                let polished = try await AIService.shared.polish(
+                    text: textToPolish,
+                    provider: provider,
+                    apiKey: key
+                )
+                await MainActor.run {
+                    entry.content = polished
+                    try? modelContext.save()
+                    isPolishing = false
+                }
+            } catch {
+                await MainActor.run {
+                    polishError = error.localizedDescription
+                    isPolishing = false
+                }
+            }
         }
     }
 
