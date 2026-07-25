@@ -71,6 +71,7 @@
 "settings.import_failed" = "Failed to read the file. Make sure it is a valid Inkling export.";
 "settings.about" = "About";
 "settings.version" = "Version";
+"settings.help" = "Help";
 "settings.privacy" = "Privacy Policy";
 "settings.syncing" = "Syncing quietly with iCloud";
 "settings.export_success" = "Exported successfully";
@@ -114,6 +115,25 @@
 "font.pingfang_desc" = "Modern sans-serif, clean and crisp";
 
 "editor.placeholder" = "What's on your mind today?";
+
+/* Help */
+"help.title" = "Help";
+"help.ai_title" = "AI Polish (Core Feature)";
+"help.ai_body" = "Inkling includes built-in AI polish to refine your casual writing into more elegant prose.\n\n1. Go to Settings > AI Polish and enter your API key (DeepSeek recommended — free registration).\n2. After writing, tap the ✨ button in the detail view toolbar, or enter edit mode and tap Polish above the keyboard.\n3. The AI will optimize grammar, word choice, and flow while preserving your original meaning.\n4. Tap again if you'd like another pass, or edit manually.";
+"help.write_title" = "Writing";
+"help.write_body" = "Tap the ✏️ button on the home page to start a new entry. Supports keyboard, dictation, or handwriting. Auto-save is always on — you never need to manually save. Each entry can include up to 5 photos.";
+"help.calendar_title" = "Calendar";
+"help.calendar_body" = "The Calendar tab shows a monthly view. Dates with entries are marked with dots. Tap a date to browse its entries.";
+"help.photo_title" = "Photos";
+"help.photo_body" = "Add up to 5 photos while editing. Tap a photo for full-screen view with pinch-to-zoom and pan gestures.";
+"help.font_title" = "Font & Appearance";
+"help.font_body" = "Settings > Font offers: Songti (classic serif), Kaiti (calligraphic), or PingFang (modern sans-serif). Adjust size from 14–24pt. Settings > Display > Appearance supports light/dark mode.";
+"help.lock_title" = "Privacy Lock";
+"help.lock_body" = "Enable lock in Settings > Privacy to require Face ID / Touch ID each time you open the app or return from the background.";
+"help.sync_title" = "iCloud Sync";
+"help.sync_body" = "Entries sync automatically across all your Apple devices via iCloud. Works offline and syncs when back online — no manual steps needed.";
+"help.export_title" = "Export & Import";
+"help.export_body" = "Use Settings > Data to export all entries (including photos) as a text file for backup, or restore from a previously exported file.";
 
 /* Privacy Policy */
 "privacy.nav_title" = "Privacy Policy";

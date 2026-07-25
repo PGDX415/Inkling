@@ -71,6 +71,7 @@
 "settings.import_failed" = "文件读取失败，请确认是有效的拾光导出文件。";
 "settings.about" = "关于";
 "settings.version" = "版本";
+"settings.help" = "使用帮助";
 "settings.privacy" = "隐私政策";
 "settings.syncing" = "正在与云端悄悄同步";
 "settings.export_success" = "导出成功";
@@ -114,6 +115,25 @@
 "font.pingfang_desc" = "现代无衬线，简洁清爽";
 
 "editor.placeholder" = "今天想写些什么？";
+
+/* Help */
+"help.title" = "使用帮助";
+"help.ai_title" = "AI 润色（核心功能）";
+"help.ai_body" = "拾光内置 AI 润色，帮助你将随手写下的文字润色为更优美的表达。\n\n1. 在「设置 > AI 润色」中填入 API 密钥（推荐 DeepSeek，免费注册即可获得）。\n2. 写完日记后，在详情页右上角点击 ✨ 按钮，或进入编辑页点击键盘上方的「润色」按钮。\n3. AI 会自动优化语法、用词和逻辑流畅度，保持原意不变。\n4. 如不满意可继续点击润色，或手动修改。";
+"help.write_title" = "写日记";
+"help.write_body" = "点击首页右上角 ✏️ 按钮即可新建日记。支持键盘输入、语音录入或手写。日记会自动保存，无需手动操作。每篇日记可以添加最多 5 张照片。";
+"help.calendar_title" = "时光之历";
+"help.calendar_body" = "底部「时光之历」标签页可查看日历。有日记的日期会显示圆点标记，点击日期可浏览当天的所有日记。";
+"help.photo_title" = "照片";
+"help.photo_body" = "编辑日记时可插入照片（最多 5 张）。点击照片可全屏查看，支持双指缩放和拖动。";
+"help.font_title" = "字体与外观";
+"help.font_body" = "在「设置 > 字体」中可选：宋体（古典衬线）、楷体（手写风格）、苹方（现代无衬线）。字号可在 14-24pt 之间调节。「设置 > 显示 > 外观」支持深色/浅色模式切换。";
+"help.lock_title" = "隐私锁定";
+"help.lock_body" = "在「设置 > 隐私」中开启锁定后，应用每次打开或切回前台时，需要面容 ID / 触控 ID 验证。";
+"help.sync_title" = "iCloud 同步";
+"help.sync_body" = "日记数据通过 iCloud 自动在所有 Apple 设备间同步，无需手动操作。离线时正常使用，联网后自动同步。";
+"help.export_title" = "导出与导入";
+"help.export_body" = "在「设置 > 数据」中可导出全部日记为文本文件（含照片），方便备份。也可从之前导出的文件恢复日记。";
 
 /* Privacy Policy */
 "privacy.nav_title" = "隐私政策";

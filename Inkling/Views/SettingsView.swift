@@ -264,6 +264,16 @@ struct SettingsView: View {
                     }
 
                     NavigationLink {
+                        HelpView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "questionmark.circle")
+                                .foregroundStyle(.brown)
+                            Text("settings.help")
+                        }
+                    }
+
+                    NavigationLink {
                         PrivacyPolicyView()
                     } label: {
                         HStack {
