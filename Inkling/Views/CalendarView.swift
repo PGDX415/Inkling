@@ -4,7 +4,8 @@ import SwiftData
 /// Calendar view showing a monthly grid with dates that have journal entries highlighted
 struct CalendarView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \JournalEntry.createdAt, order: .reverse) private var allEntries: [JournalEntry]
+    @Query(filter: #Predicate<JournalEntry> { $0.deletedAt == nil },
+           sort: \JournalEntry.createdAt, order: .reverse) private var allEntries: [JournalEntry]
 
     @State private var currentMonth: Date = Date()
     @State private var selectedDate: Date?

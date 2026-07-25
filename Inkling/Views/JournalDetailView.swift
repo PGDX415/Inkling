@@ -219,7 +219,7 @@ struct JournalDetailView: View {
     // MARK: - Actions
     private func deleteEntry() {
         withAnimation {
-            modelContext.delete(entry)
+            entry.deletedAt = Date()
             try? modelContext.save()
             dismiss()
         }

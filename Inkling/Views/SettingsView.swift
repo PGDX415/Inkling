@@ -213,6 +213,21 @@ struct SettingsView: View {
 
                 // MARK: - Data Section
                 Section {
+                    NavigationLink {
+                        TrashView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "trash")
+                                .foregroundStyle(.brown)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("settings.trash")
+                                Text("settings.trash_description")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+
                     Button {
                         exportEntries()
                     } label: {
@@ -419,6 +434,7 @@ struct SettingsView: View {
     // MARK: - Export
     private func exportEntries() {
         let descriptor = FetchDescriptor<JournalEntry>(
+            predicate: #Predicate { $0.deletedAt == nil },
             sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
         )
 
@@ -503,7 +519,7 @@ struct SettingsView: View {
 
                 var newCount = 0
                 var skippedCount = 0
-                let allExisting = try modelContext.fetch(FetchDescriptor<JournalEntry>())
+                let allExisting = try modelContext.fetch(FetchDescriptor<JournalEntry>(predicate: #Predicate { $0.deletedAt == nil }))
                 let existingSet = Set(allExisting.map { "\($0.createdAt.timeIntervalSince1970)|\($0.content)" })
 
                 for entryData in imported {

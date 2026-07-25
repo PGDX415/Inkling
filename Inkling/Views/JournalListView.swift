@@ -10,7 +10,8 @@ import SwiftData
 struct JournalListView: View {
     @Environment(\.modelContext) private var modelContext
     @AppStorage("sortOrder") private var sortOrderRaw = SortOrder.newestFirst.rawValue
-    @Query(sort: \JournalEntry.createdAt, order: .reverse) private var entries: [JournalEntry]
+    @Query(filter: #Predicate<JournalEntry> { $0.deletedAt == nil },
+           sort: \JournalEntry.createdAt, order: .reverse) private var entries: [JournalEntry]
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var viewModel = JournalViewModel()
@@ -281,7 +282,7 @@ struct JournalListView: View {
                 selectedEntryID = nil
                 isCreatingNew = false
             }
-            modelContext.delete(entry)
+            entry.deletedAt = Date()
             try? modelContext.save()
         }
         entryToDelete = nil

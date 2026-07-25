@@ -20,7 +20,7 @@
 "journal.edit" = "Edit";
 "journal.delete" = "Erase";
 "journal.delete_title" = "Erase this entry?";
-"journal.delete_message" = "This can't be undone once it's gone.";
+"journal.delete_message" = "Deleted entries stay in trash for 30 days, then are permanently removed.";
 "journal.delete_confirm" = "Erase";
 "journal.delete_cancel" = "Keep it";
 "journal.saved" = "Quietly saved";
@@ -61,6 +61,8 @@
 "settings.sort_order" = "Sort Order";
 "settings.sort_newest" = "Newest First";
 "settings.sort_oldest" = "Oldest First";
+"settings.trash" = "Trash";
+"settings.trash_description" = "View deleted entries — restorable within 30 days.";
 "settings.export" = "Export";
 "settings.export_description" = "Export all entries as a text file.";
 "settings.import" = "Import";
@@ -115,6 +117,17 @@
 "font.pingfang_desc" = "Modern sans-serif, clean and crisp";
 
 "editor.placeholder" = "What's on your mind today?";
+
+/* Trash */
+"trash.title" = "Trash";
+"trash.header" = "%d entries · auto-cleared after %d days";
+"trash.remaining" = "%d days left";
+"trash.restore" = "Restore";
+"trash.delete_forever" = "Delete Forever";
+"trash.empty" = "Empty Trash";
+"trash.empty_confirm" = "Empty Trash";
+"trash.empty_message" = "This cannot be undone. All trashed entries will be permanently removed.";
+"trash.retention_hint" = "Deleted entries stay in trash for %d days,\nthen are automatically removed.";
 
 /* Help */
 "help.title" = "Help";

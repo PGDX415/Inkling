@@ -20,7 +20,7 @@
 "journal.edit" = "编辑";
 "journal.delete" = "抹去";
 "journal.delete_title" = "要抹去这段时光吗？";
-"journal.delete_message" = "一旦抹去，便无法寻回";
+"journal.delete_message" = "删除的日记可在回收站保留 30 天，逾期将永久清除。";
 "journal.delete_confirm" = "抹去";
 "journal.delete_cancel" = "留下";
 "journal.saved" = "已悄然记下";
@@ -61,6 +61,8 @@
 "settings.sort_order" = "时光的顺序";
 "settings.sort_newest" = "由近及远";
 "settings.sort_oldest" = "由远及近";
+"settings.trash" = "回收站";
+"settings.trash_description" = "查看已删除的日记，可在 30 天内恢复。";
 "settings.export" = "誊抄一份";
 "settings.export_description" = "将所有日记导出为文本文件。";
 "settings.import" = "归入旧卷";
@@ -115,6 +117,17 @@
 "font.pingfang_desc" = "现代无衬线，简洁清爽";
 
 "editor.placeholder" = "今天想写些什么？";
+
+/* Trash */
+"trash.title" = "回收站";
+"trash.header" = "共 %d 篇日记，超过 %d 天将自动清除";
+"trash.remaining" = "剩余 %d 天";
+"trash.restore" = "恢复";
+"trash.delete_forever" = "彻底删除";
+"trash.empty" = "清空回收站";
+"trash.empty_confirm" = "清空回收站";
+"trash.empty_message" = "此操作无法撤销，所有已删除的日记将被永久清除。";
+"trash.retention_hint" = "日记删除后会在回收站保留 %d 天，\n逾期自动清除。";
 
 /* Help */
 "help.title" = "使用帮助";

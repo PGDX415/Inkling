@@ -7,6 +7,8 @@ final class JournalEntry {
     var createdAt: Date = Date()
     var modifiedAt: Date = Date()
     var content: String = ""
+    /// Non-nil means the entry is in trash; nil means it's active
+    var deletedAt: Date? = nil
     @Relationship(deleteRule: .cascade, inverse: \JournalPhoto.entry) var photos: [JournalPhoto]? = []
 
     init(content: String = "", createdAt: Date = Date()) {
@@ -15,6 +17,9 @@ final class JournalEntry {
         self.modifiedAt = createdAt
         self.content = content
     }
+
+    /// Whether the entry is in trash (soft-deleted)
+    var isDeleted: Bool { deletedAt != nil }
 
     /// First meaningful line of content, used as list preview title
     var title: String {
