@@ -13,6 +13,7 @@ struct SettingsView: View {
     @AppStorage("aiApiKey_gemini") private var geminiKey = ""
     @AppStorage("fontStyle") private var fontStyle = FontStyle.songti.rawValue
     @AppStorage("fontSize") private var fontSize: Double = 18.0
+    @AppStorage("displayMode") private var displayMode = DisplayMode.system.rawValue
     @Query private var profiles: [UserProfile]
     @Environment(\.modelContext) private var modelContext
     @State private var resolvedProfile: UserProfile?
@@ -104,6 +105,18 @@ struct SettingsView: View {
 
                 // MARK: - Display Section
                 Section {
+                    Picker(selection: $displayMode) {
+                        ForEach(DisplayMode.allCases, id: \.rawValue) { mode in
+                            Text(mode.localizedName).tag(mode.rawValue)
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "circle.lefthalf.filled")
+                                .foregroundStyle(.brown)
+                            Text("settings.display_mode")
+                        }
+                    }
+
                     Picker(selection: $sortOrder) {
                         ForEach(SortOrder.allCases, id: \.self) { order in
                             Text(order.localizedName).tag(order.rawValue)
@@ -248,6 +261,16 @@ struct SettingsView: View {
                         Spacer()
                         Text("app.name")
                             .foregroundStyle(.secondary)
+                    }
+
+                    NavigationLink {
+                        PrivacyPolicyView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "hand.raised")
+                                .foregroundStyle(.brown)
+                            Text("settings.privacy")
+                        }
                     }
                 } header: {
                     Text("settings.about")

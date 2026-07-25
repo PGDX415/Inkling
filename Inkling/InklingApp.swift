@@ -11,6 +11,7 @@ import SwiftData
 @main
 struct InklingApp: App {
     @AppStorage("isLockEnabled") private var isLockEnabled = false
+    @AppStorage("displayMode") private var displayModeRaw = DisplayMode.system.rawValue
     @State private var isLocked = false
     @State private var showSplash = true
     @Environment(\.scenePhase) private var scenePhase
@@ -47,6 +48,7 @@ struct InklingApp: App {
                                 .transition(.opacity)
                         }
                     }
+                    .preferredColorScheme(DisplayMode(rawValue: displayModeRaw)?.colorScheme ?? nil)
                     .onAppear {
                         if isLockEnabled {
                             isLocked = true

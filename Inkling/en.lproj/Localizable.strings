@@ -51,6 +51,10 @@
 
 "settings.section_privacy" = "Privacy";
 "settings.section_display" = "Display";
+"settings.display_mode" = "Appearance";
+"display.system" = "System";
+"display.light" = "Light";
+"display.dark" = "Dark";
 "settings.section_data" = "Data";
 "settings.app_lock" = "Lock Inkling";
 "settings.app_lock_description" = "Require Face ID, Touch ID, or passcode to open the app.";
@@ -67,6 +71,7 @@
 "settings.import_failed" = "Failed to read the file. Make sure it is a valid Inkling export.";
 "settings.about" = "About";
 "settings.version" = "Version";
+"settings.privacy" = "Privacy Policy";
 "settings.syncing" = "Syncing quietly with iCloud";
 "settings.export_success" = "Exported successfully";
 "settings.export_failed" = "Export failed";
@@ -109,3 +114,23 @@
 "font.pingfang_desc" = "Modern sans-serif, clean and crisp";
 
 "editor.placeholder" = "What's on your mind today?";
+
+/* Privacy Policy */
+"privacy.nav_title" = "Privacy Policy";
+"privacy.title" = "Inkling Privacy Policy";
+"privacy.intro" = "Inkling is a minimalist journaling app. We take your privacy seriously and have built it with privacy as a core principle. This policy explains how we handle your data.";
+"privacy.s1_title" = "1. Data Storage & Sync";
+"privacy.s1_body" = "All your journal entries, photos, and profile data are stored locally on your device and synced across your devices via your personal iCloud account (CloudKit). Inkling does not upload your data to any third-party servers, nor do we ever access your journal content. iCloud sync is provided entirely by Apple and protected by Apple's privacy policy.";
+"privacy.s2_title" = "2. AI Polish Feature";
+"privacy.s2_body" = "Inkling offers an optional AI polish feature powered by DeepSeek, SiliconFlow, and Google Gemini. When you use AI polish, the selected journal text is sent to the chosen provider's API for processing. This feature is triggered only by your explicit action. Inkling never sends any content in the background. Please refer to each AI provider's respective privacy policy for their data handling practices.";
+"privacy.s3_title" = "3. Biometric Authentication";
+"privacy.s3_body" = "Inkling supports app locking via Face ID or Touch ID. This functionality is handled entirely on-device. Your biometric data is managed by the Apple operating system — Inkling cannot and does not access your face or fingerprint data.";
+"privacy.s4_title" = "4. Data Export & Deletion";
+"privacy.s4_body" = "You can export all your entries as a text file at any time, and you can delete individual entries or clear all data. Deletion is irreversible — data will be permanently removed from your device and iCloud.";
+"privacy.s5_title" = "5. Third-Party Services";
+"privacy.s5_body" = "Beyond the AI polish services you actively choose to use, Inkling does not integrate any third-party analytics tools, advertising SDKs, or data tracking services. We do not collect usage statistics or crash reports.";
+"privacy.s6_title" = "6. Children's Privacy";
+"privacy.s6_body" = "Inkling is not directed at children under 13, and we do not knowingly collect personal information from children.";
+"privacy.s7_title" = "7. Contact Us";
+"privacy.s7_body" = "If you have questions about this privacy policy, please reach out via GitHub Issues:\nhttps://github.com/PGDX415/Inkling/issues";
+"privacy.last_updated" = "Last updated:";

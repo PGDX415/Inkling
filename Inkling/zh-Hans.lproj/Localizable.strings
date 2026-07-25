@@ -51,6 +51,10 @@
 
 "settings.section_privacy" = "隐私";
 "settings.section_display" = "显示";
+"settings.display_mode" = "外观";
+"display.system" = "跟随系统";
+"display.light" = "浅色";
+"display.dark" = "深色";
 "settings.section_data" = "数据";
 "settings.app_lock" = "为日记上锁";
 "settings.app_lock_description" = "开启后需使用面容 ID、触控 ID 或密码解锁应用。";
@@ -67,6 +71,7 @@
 "settings.import_failed" = "文件读取失败，请确认是有效的拾光导出文件。";
 "settings.about" = "关于";
 "settings.version" = "版本";
+"settings.privacy" = "隐私政策";
 "settings.syncing" = "正在与云端悄悄同步";
 "settings.export_success" = "导出成功";
 "settings.export_failed" = "导出失败";
@@ -109,3 +114,23 @@
 "font.pingfang_desc" = "现代无衬线，简洁清爽";
 
 "editor.placeholder" = "今天想写些什么？";
+
+/* Privacy Policy */
+"privacy.nav_title" = "隐私政策";
+"privacy.title" = "拾光（Inkling）隐私政策";
+"privacy.intro" = "拾光是一款极简日记应用。我们深知隐私对您的重要性，因此从设计之初便将隐私保护作为核心原则。本隐私政策将清晰说明我们如何处理您的数据。";
+"privacy.s1_title" = "1. 数据存储与同步";
+"privacy.s1_body" = "您的所有日记内容、照片和个人资料均存储在您的设备本地，并通过您个人的 iCloud 账户（CloudKit）在您的设备间同步。拾光不会将您的数据上传至任何第三方服务器，也不会在任何情况下访问您的日记内容。iCloud 同步完全由 Apple 提供，受 Apple 隐私政策保护。";
+"privacy.s2_title" = "2. AI 润色功能";
+"privacy.s2_body" = "拾光提供可选的 AI 润色功能，支持 DeepSeek、硅基流动和 Google Gemini 三种服务商。当您使用 AI 润色时，您选中的日记文本将被发送至对应服务商的 API 进行处理。此功能完全由您主动触发，拾光不会在后台自动发送任何内容。各 AI 服务商的数据处理政策请参阅其各自的隐私政策。";
+"privacy.s3_title" = "3. 生物识别认证";
+"privacy.s3_body" = "拾光支持使用面容 ID 或触控 ID 锁定应用。此功能完全在设备本地完成，您的生物识别数据由 Apple 操作系统管理，拾光无法访问您的面容或指纹数据。";
+"privacy.s4_title" = "4. 数据导出与删除";
+"privacy.s4_body" = "您可以随时导出所有日记为文本文件，也可以随时删除单篇日记或清空所有数据。删除操作不可撤销，数据将从您的设备和 iCloud 中永久移除。";
+"privacy.s5_title" = "5. 第三方服务";
+"privacy.s5_body" = "除您主动选择的 AI 润色服务外，拾光不使用任何第三方分析工具、广告 SDK 或数据追踪服务。我们不收集任何使用统计或崩溃报告。";
+"privacy.s6_title" = "6. 儿童隐私";
+"privacy.s6_body" = "拾光不面向 13 岁以下儿童，我们不会有意收集儿童的个人信息。";
+"privacy.s7_title" = "7. 联系我们";
+"privacy.s7_body" = "如果您对本隐私政策有任何疑问，请通过 GitHub Issues 与我们联系：\nhttps://github.com/PGDX415/Inkling/issues";
+"privacy.last_updated" = "最后更新日期：";
