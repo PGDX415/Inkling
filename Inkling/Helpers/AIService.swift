@@ -46,7 +46,7 @@ actor AIService {
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
 
         let body: [String: Any] = [
-            "model": "deepseek-chat",
+            "model": "deepseek-v4-flash",
             "messages": [
                 ["role": "user", "content": prompt]
             ],
