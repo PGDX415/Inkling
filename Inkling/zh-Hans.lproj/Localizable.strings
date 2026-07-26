@@ -109,6 +109,11 @@
 "settings.section_font" = "字体";
 "settings.font_style" = "字体样式";
 "settings.font_size" = "字号";
+"settings.section_voice" = "语音朗读";
+"settings.speech_rate" = "朗读速度";
+"speech.normal" = "正常";
+"speech.slow" = "较慢";
+"speech.fast" = "较快";
 "font.songti" = "宋体";
 "font.songti_desc" = "古典衬线，温润雅致";
 "font.kaiti" = "楷体";

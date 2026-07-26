@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import PhotosUI
 import UniformTypeIdentifiers
+import AVFoundation
 
 /// App settings view
 struct SettingsView: View {
@@ -14,6 +15,8 @@ struct SettingsView: View {
     @AppStorage("fontStyle") private var fontStyle = FontStyle.songti.rawValue
     @AppStorage("fontSize") private var fontSize: Double = 18.0
     @AppStorage("displayMode") private var displayMode = DisplayMode.system.rawValue
+    @AppStorage("voiceIdentifier") private var voiceIdentifier = ""
+    @AppStorage("speechRate") private var speechRate: Double = 0.5
     @Query private var profiles: [UserProfile]
     @Environment(\.modelContext) private var modelContext
     @State private var resolvedProfile: UserProfile?
@@ -24,6 +27,10 @@ struct SettingsView: View {
     @State private var showImportAlert = false
     @State private var importMessage = ""
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var previewingVoice: String?
+    @State private var availableVoices: [(language: String, voices: [AVSpeechSynthesisVoice])] = []
+
+    private let speechRateRange: ClosedRange<Double> = 0.35...0.65
 
     var body: some View {
         NavigationStack {
@@ -210,6 +217,9 @@ struct SettingsView: View {
                 } header: {
                     Text("settings.section_font")
                 }
+
+                // MARK: - Voice Section
+                voiceSection
 
                 // MARK: - Data Section
                 Section {
@@ -428,6 +438,101 @@ struct SettingsView: View {
                 resolveProfile().photoData = compressed
                 try? modelContext.save()
             }
+        }
+    }
+
+    // MARK: - Voice Section
+    @ViewBuilder
+    private var voiceSection: some View {
+        let voices = availableVoices.isEmpty
+            ? SpeechManager.availableVoices()
+            : availableVoices
+
+        Section {
+            ForEach(voices, id: \.language) { group in
+                voiceGroupView(group)
+            }
+
+            // Speech rate
+            VStack(spacing: 8) {
+                HStack {
+                    Text("settings.speech_rate")
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Text(speedLabel)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                HStack {
+                    Image(systemName: "tortoise")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Slider(value: $speechRate, in: speechRateRange)
+                        .tint(.brown)
+                    Image(systemName: "hare")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } header: {
+            Text("settings.section_voice")
+        }
+        .onAppear {
+            if availableVoices.isEmpty {
+                availableVoices = SpeechManager.availableVoices()
+            }
+        }
+    }
+
+    private var speedLabel: String {
+        if speechRate < 0.4 { return String(localized: "speech.slow") }
+        if speechRate > 0.55 { return String(localized: "speech.fast") }
+        return String(localized: "speech.normal")
+    }
+
+    private func voiceGroupView(_ group: (language: String, voices: [AVSpeechSynthesisVoice])) -> some View {
+        ForEach(group.voices, id: \.identifier) { voice in
+            let isSelected = voiceIdentifier == voice.identifier
+            let isPreviewing = previewingVoice == voice.identifier
+
+            Button {
+                voiceIdentifier = voice.identifier
+                previewingVoice = voice.identifier
+                SpeechManager.shared.preview(
+                    voiceIdentifier: voice.identifier,
+                    sample: voice.language.hasPrefix("zh")
+                        ? "春眠不觉晓，处处闻啼鸟"
+                        : "The quick brown fox jumps over the lazy dog."
+                )
+                // Reset preview state after a short delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    if previewingVoice == voice.identifier { previewingVoice = nil }
+                }
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(voice.name)
+                            .font(.subheadline)
+                            .foregroundStyle(.primary)
+                        Text(group.language)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if isSelected {
+                        Image(systemName: "checkmark")
+                            .foregroundStyle(.brown)
+                            .fontWeight(.medium)
+                    }
+                    if isPreviewing {
+                        Image(systemName: "speaker.wave.2")
+                            .foregroundStyle(.brown)
+                            .font(.caption)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
         }
     }
 

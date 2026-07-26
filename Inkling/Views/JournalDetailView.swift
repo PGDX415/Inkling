@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import AVFoundation
 
 /// Read-only detail view for a journal entry
 struct JournalDetailView: View {
@@ -11,11 +12,14 @@ struct JournalDetailView: View {
     @AppStorage("aiApiKey_deepseek") private var deepseekKey = ""
     @AppStorage("aiApiKey_siliconflow") private var siliconflowKey = ""
     @AppStorage("aiApiKey_gemini") private var geminiKey = ""
+    @AppStorage("voiceIdentifier") private var voiceIdentifier = ""
+    @AppStorage("speechRate") private var speechRate: Double = 0.5
     @State private var showDeleteAlert = false
     @State private var isEditing = false
     @State private var isPolishing = false
     @State private var polishError: String?
     @State private var fullScreenPhoto: JournalPhoto?
+    @State private var speechManager = SpeechManager.shared
 
     let entry: JournalEntry
 
@@ -50,6 +54,19 @@ struct JournalDetailView: View {
         .background(Color("JournalBackground"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                if !entry.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Button {
+                        toggleSpeech()
+                    } label: {
+                        Image(systemName: speechManager.isSpeaking && !speechManager.isPaused
+                              ? "speaker.wave.2.fill"
+                              : "speaker.wave.2")
+                    }
+                    .tint(.brown)
+                }
+            }
+
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 16) {
                     // AI Polish button
@@ -104,6 +121,9 @@ struct JournalDetailView: View {
         }
         .fullScreenCover(item: $fullScreenPhoto) { photo in
             FullScreenPhotoView(imageData: photo.imageData)
+        }
+        .onDisappear {
+            speechManager.stop()
         }
         .sheet(isPresented: $isEditing) {
             NavigationStack {
@@ -174,6 +194,24 @@ struct JournalDetailView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.top, 8)
+        }
+    }
+
+    // MARK: - Speech
+    private func toggleSpeech() {
+        if speechManager.isSpeaking && !speechManager.isPaused {
+            speechManager.pause()
+        } else if speechManager.isPaused {
+            speechManager.resume()
+        } else {
+            let voice = voiceIdentifier.isEmpty
+                ? nil
+                : voiceIdentifier
+            speechManager.speak(
+                entry.content,
+                voiceIdentifier: voice ?? AVSpeechSynthesisVoice(language: "zh-CN")?.identifier ?? "",
+                rate: Float(speechRate * AVSpeechUtteranceMaximumSpeechRate)
+            )
         }
     }
 

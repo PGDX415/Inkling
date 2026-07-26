@@ -109,6 +109,11 @@
 "settings.section_font" = "Font";
 "settings.font_style" = "Font Style";
 "settings.font_size" = "Font Size";
+"settings.section_voice" = "Voice";
+"settings.speech_rate" = "Speech Rate";
+"speech.normal" = "Normal";
+"speech.slow" = "Slow";
+"speech.fast" = "Fast";
 "font.songti" = "Songti";
 "font.songti_desc" = "Elegant serif, warm and classic";
 "font.kaiti" = "Kaiti";
