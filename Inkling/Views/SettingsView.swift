@@ -447,18 +447,14 @@ struct SettingsView: View {
         let allVoices = availableVoices.isEmpty
             ? SpeechManager.availableVoices()
             : availableVoices
-        let chineseVoices = allVoices.filter { group in
-            group.voices.contains { $0.language.hasPrefix("zh") }
-        }
-        let hasChineseVoices = !chineseVoices.isEmpty
+        let hasVoices = !allVoices.isEmpty
 
         Section {
-            if hasChineseVoices {
-                ForEach(chineseVoices, id: \.language) { group in
-                    let zhVoices = group.voices.filter { $0.language.hasPrefix("zh") }
-                    if !zhVoices.isEmpty {
+            if hasVoices {
+                ForEach(allVoices, id: \.language) { group in
+                    if !group.voices.isEmpty {
                         DisclosureGroup {
-                            ForEach(zhVoices, id: \.identifier) { voice in
+                            ForEach(group.voices, id: \.identifier) { voice in
                                 voiceRow(voice, language: group.language)
                             }
                         } label: {
@@ -530,13 +526,18 @@ struct SettingsView: View {
                     Text(voice.name)
                         .font(.subheadline)
                         .foregroundStyle(.primary)
-                    // Show gender hint for bundled voices
-                    if voice.identifier.contains("com.apple.ttsbundle") || voice.identifier.contains("com.apple.voice") {
+                    // Show gender hint
+                    let isBundled = voice.identifier.contains("com.apple.ttsbundle") || voice.identifier.contains("com.apple.voice")
+                    if isBundled {
                         Text(voice.gender == .female
                              ? String(localized: "voice.female")
                              : String(localized: "voice.male"))
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                    } else {
+                        Text("voice.my_voice")
+                            .font(.caption)
+                            .foregroundStyle(.brown)
                     }
                 }
                 Spacer()
