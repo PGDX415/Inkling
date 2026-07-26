@@ -205,11 +205,11 @@ struct JournalDetailView: View {
             speechManager.resume()
         } else {
             let voice = voiceIdentifier.isEmpty
-                ? nil
-                : voiceIdentifier
+                ? AVSpeechSynthesisVoice(language: "zh-CN")
+                : AVSpeechSynthesisVoice(identifier: voiceIdentifier)
             speechManager.speak(
                 entry.content,
-                voiceIdentifier: voice ?? AVSpeechSynthesisVoice(language: "zh-CN")?.identifier ?? "",
+                voice: voice,
                 rate: Float(speechRate) * AVSpeechUtteranceMaximumSpeechRate
             )
         }

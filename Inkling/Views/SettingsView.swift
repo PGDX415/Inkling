@@ -518,7 +518,7 @@ struct SettingsView: View {
             voiceIdentifier = voice.identifier
             previewingVoice = voice.identifier
             SpeechManager.shared.preview(
-                voiceIdentifier: voice.identifier,
+                voice: voice,
                 sample: "春眠不觉晓，处处闻啼鸟"
             )
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {

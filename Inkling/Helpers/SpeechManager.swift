@@ -36,13 +36,11 @@ final class SpeechManager: NSObject, AVSpeechSynthesizerDelegate {
             .sorted { $0.language < $1.language }
     }
 
-    /// Speak the given text
-    func speak(_ text: String, voiceIdentifier: String, rate: Float) {
+    /// Speak the given text using a specific voice object
+    func speak(_ text: String, voice: AVSpeechSynthesisVoice?, rate: Float) {
         synthesizer.stopSpeaking(at: .immediate)
         let utterance = AVSpeechUtterance(string: text)
-        // Resolve voice, fall back to default if not found
-        utterance.voice = AVSpeechSynthesisVoice(identifier: voiceIdentifier)
-            ?? AVSpeechSynthesisVoice(language: "zh-CN")
+        utterance.voice = voice ?? AVSpeechSynthesisVoice(language: "zh-CN")
         utterance.rate = rate
         utterance.pitchMultiplier = 1.0
         isSpeaking = true
@@ -50,12 +48,11 @@ final class SpeechManager: NSObject, AVSpeechSynthesizerDelegate {
         synthesizer.speak(utterance)
     }
 
-    /// Speak a short sample for voice preview
-    func preview(voiceIdentifier: String, sample: String) {
+    /// Speak a short sample using a specific voice object
+    func preview(voice: AVSpeechSynthesisVoice?, sample: String) {
         synthesizer.stopSpeaking(at: .immediate)
         let utterance = AVSpeechUtterance(string: sample)
-        utterance.voice = AVSpeechSynthesisVoice(identifier: voiceIdentifier)
-            ?? AVSpeechSynthesisVoice(language: "zh-CN")
+        utterance.voice = voice ?? AVSpeechSynthesisVoice(language: "zh-CN")
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
         utterance.volume = 0.8
         synthesizer.speak(utterance)
