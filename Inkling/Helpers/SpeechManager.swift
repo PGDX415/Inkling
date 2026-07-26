@@ -25,24 +25,9 @@ final class SpeechManager: NSObject, AVSpeechSynthesizerDelegate {
         }
     }
 
-    /// Personal voices the user has created (iOS 17+)
-    /// Authorization must be granted first for personal voices to appear in the list
-    static func personalVoices() -> [AVSpeechSynthesisVoice] {
-        AVSpeechSynthesisVoice.speechVoices().filter { voice in
-            // Personal voices have identifiers that differ from bundled voices
-            // Detect them by checking if the identifier is NOT a known Apple bundled voice pattern
-            let id = voice.identifier.lowercased()
-            let isBundled = id.contains("com.apple.ttsbundle") || id.contains("com.apple.voice")
-            // Personal voice identifiers typically contain "personal" or look like generated UUIDs
-            let isPersonal = id.contains("personal") || (!isBundled && voice.quality != .default)
-            return isPersonal
-        }
-    }
-
-    /// Available voices, grouped by language (excluding personal voices)
+    /// Available voices, grouped by language (includes personal voices once authorized)
     static func availableVoices() -> [(language: String, voices: [AVSpeechSynthesisVoice])] {
-        let personalIds = Set(Self.personalVoices().map { $0.identifier })
-        let all = AVSpeechSynthesisVoice.speechVoices().filter { !personalIds.contains($0.identifier) }
+        let all = AVSpeechSynthesisVoice.speechVoices()
         let grouped = Dictionary(grouping: all) { voice in
             Locale.current.localizedString(forIdentifier: voice.language) ?? voice.language
         }
