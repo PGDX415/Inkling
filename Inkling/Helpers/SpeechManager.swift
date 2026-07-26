@@ -16,11 +16,26 @@ final class SpeechManager: NSObject, AVSpeechSynthesizerDelegate {
         synthesizer.delegate = self
     }
 
+    /// Request authorization to use Personal Voice (iOS 17+)
+    static func requestPersonalVoiceAuth() async -> Bool {
+        await withCheckedContinuation { continuation in
+            AVSpeechSynthesizer.requestPersonalVoiceAuthorization { status in
+                continuation.resume(returning: status == .authorized)
+            }
+        }
+    }
+
     /// Personal voices the user has created (iOS 17+)
-    /// Personal voices are identified by their identifier containing "personal"
+    /// Authorization must be granted first for personal voices to appear in the list
     static func personalVoices() -> [AVSpeechSynthesisVoice] {
         AVSpeechSynthesisVoice.speechVoices().filter { voice in
-            voice.identifier.localizedCaseInsensitiveContains("personal")
+            // Personal voices have identifiers that differ from bundled voices
+            // Detect them by checking if the identifier is NOT a known Apple bundled voice pattern
+            let id = voice.identifier.lowercased()
+            let isBundled = id.contains("com.apple.ttsbundle") || id.contains("com.apple.voice")
+            // Personal voice identifiers typically contain "personal" or look like generated UUIDs
+            let isPersonal = id.contains("personal") || (!isBundled && voice.quality != .default)
+            return isPersonal
         }
     }
 

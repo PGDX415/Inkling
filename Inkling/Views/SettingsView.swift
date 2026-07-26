@@ -519,10 +519,7 @@ struct SettingsView: View {
             Text("settings.section_voice")
         }
         .onAppear {
-            if availableVoices.isEmpty {
-                availableVoices = SpeechManager.availableVoices()
-            }
-            myVoices = SpeechManager.personalVoices()
+            refreshVoices()
         }
     }
 
@@ -613,6 +610,17 @@ struct SettingsView: View {
             }
         }
         .buttonStyle(.plain)
+    }
+
+    // MARK: - Voice Refresh
+    private func refreshVoices() {
+        if availableVoices.isEmpty {
+            availableVoices = SpeechManager.availableVoices()
+        }
+        Task {
+            _ = await SpeechManager.requestPersonalVoiceAuth()
+            myVoices = SpeechManager.personalVoices()
+        }
     }
 
     // MARK: - Export
