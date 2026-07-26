@@ -114,6 +114,9 @@
 "speech.normal" = "Normal";
 "speech.slow" = "Slow";
 "speech.fast" = "Fast";
+"voice.unavailable" = "No Chinese voices available";
+"voice.female" = "Female";
+"voice.male" = "Male";
 "font.songti" = "Songti";
 "font.songti_desc" = "Elegant serif, warm and classic";
 "font.kaiti" = "Kaiti";

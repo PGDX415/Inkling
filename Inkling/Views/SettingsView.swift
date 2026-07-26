@@ -444,13 +444,34 @@ struct SettingsView: View {
     // MARK: - Voice Section
     @ViewBuilder
     private var voiceSection: some View {
-        let voices = availableVoices.isEmpty
+        let allVoices = availableVoices.isEmpty
             ? SpeechManager.availableVoices()
             : availableVoices
+        // Only Chinese voices
+        let chineseVoices = allVoices.filter { group in
+            group.voices.contains { $0.language.hasPrefix("zh") }
+        }
 
         Section {
-            ForEach(voices, id: \.language) { group in
-                voiceGroupView(group)
+            if chineseVoices.isEmpty {
+                Text("voice.unavailable")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(chineseVoices, id: \.language) { group in
+                    let zhVoices = group.voices.filter { $0.language.hasPrefix("zh") }
+                    if !zhVoices.isEmpty {
+                        DisclosureGroup {
+                            ForEach(zhVoices, id: \.identifier) { voice in
+                                voiceRow(voice, language: group.language)
+                            }
+                        } label: {
+                            Text(group.language)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                        }
+                    }
+                }
             }
 
             // Speech rate
@@ -491,49 +512,47 @@ struct SettingsView: View {
         return String(localized: "speech.normal")
     }
 
-    private func voiceGroupView(_ group: (language: String, voices: [AVSpeechSynthesisVoice])) -> some View {
-        ForEach(group.voices, id: \.identifier) { voice in
-            let isSelected = voiceIdentifier == voice.identifier
-            let isPreviewing = previewingVoice == voice.identifier
+    private func voiceRow(_ voice: AVSpeechSynthesisVoice, language: String) -> some View {
+        let isSelected = voiceIdentifier == voice.identifier
+        let isPreviewing = previewingVoice == voice.identifier
 
-            Button {
-                voiceIdentifier = voice.identifier
-                previewingVoice = voice.identifier
-                SpeechManager.shared.preview(
-                    voiceIdentifier: voice.identifier,
-                    sample: voice.language.hasPrefix("zh")
-                        ? "春眠不觉晓，处处闻啼鸟"
-                        : "The quick brown fox jumps over the lazy dog."
-                )
-                // Reset preview state after a short delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    if previewingVoice == voice.identifier { previewingVoice = nil }
+        return Button {
+            voiceIdentifier = voice.identifier
+            previewingVoice = voice.identifier
+            SpeechManager.shared.preview(
+                voiceIdentifier: voice.identifier,
+                sample: "春眠不觉晓，处处闻啼鸟"
+            )
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                if previewingVoice == voice.identifier { previewingVoice = nil }
+            }
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(voice.name)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                    // Show gender hint
+                    Text(voice.gender == .female
+                         ? String(localized: "voice.female")
+                         : String(localized: "voice.male"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-            } label: {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(voice.name)
-                            .font(.subheadline)
-                            .foregroundStyle(.primary)
-                        Text(group.language)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    if isSelected {
-                        Image(systemName: "checkmark")
-                            .foregroundStyle(.brown)
-                            .fontWeight(.medium)
-                    }
-                    if isPreviewing {
-                        Image(systemName: "speaker.wave.2")
-                            .foregroundStyle(.brown)
-                            .font(.caption)
-                    }
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(.brown)
+                        .fontWeight(.medium)
+                }
+                if isPreviewing {
+                    Image(systemName: "speaker.wave.2")
+                        .foregroundStyle(.brown)
+                        .font(.caption)
                 }
             }
-            .buttonStyle(.plain)
         }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Export

@@ -114,6 +114,9 @@
 "speech.normal" = "正常";
 "speech.slow" = "较慢";
 "speech.fast" = "较快";
+"voice.unavailable" = "没有可用的中文语音";
+"voice.female" = "女声";
+"voice.male" = "男声";
 "font.songti" = "宋体";
 "font.songti_desc" = "古典衬线，温润雅致";
 "font.kaiti" = "楷体";
