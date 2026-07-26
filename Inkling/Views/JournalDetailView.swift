@@ -210,7 +210,7 @@ struct JournalDetailView: View {
             speechManager.speak(
                 entry.content,
                 voiceIdentifier: voice ?? AVSpeechSynthesisVoice(language: "zh-CN")?.identifier ?? "",
-                rate: Float(speechRate * AVSpeechUtteranceMaximumSpeechRate)
+                rate: Float(speechRate) * AVSpeechUtteranceMaximumSpeechRate
             )
         }
     }
