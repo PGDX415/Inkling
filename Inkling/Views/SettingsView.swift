@@ -510,20 +510,6 @@ struct SettingsView: View {
         return String(localized: "speech.normal")
     }
 
-    private func isPersonalVoice(_ voice: AVSpeechSynthesisVoice) -> Bool {
-        let id = voice.identifier
-        return !id.contains("com.apple.ttsbundle") && !id.contains("com.apple.voice")
-    }
-
-    private func voiceSubtitle(_ voice: AVSpeechSynthesisVoice) -> Text {
-        if isPersonalVoice(voice) {
-            return Text("voice.my_voice")
-        }
-        return Text(voice.gender == .female
-            ? String(localized: "voice.female")
-            : String(localized: "voice.male"))
-    }
-
     private func voiceRow(_ voice: AVSpeechSynthesisVoice, language: String) -> some View {
         let isSelected = voiceIdentifier == voice.identifier
         let isPreviewing = previewingVoice == voice.identifier
@@ -544,10 +530,14 @@ struct SettingsView: View {
                     Text(voice.name)
                         .font(.subheadline)
                         .foregroundStyle(.primary)
-                    // Show voice type hint
-                    voiceSubtitle(voice)
-                        .font(.caption)
-                        .foregroundStyle(isPersonalVoice(voice) ? .brown : .secondary)
+                    // Show gender hint for bundled voices
+                    if voice.identifier.contains("com.apple.ttsbundle") || voice.identifier.contains("com.apple.voice") {
+                        Text(voice.gender == .female
+                             ? String(localized: "voice.female")
+                             : String(localized: "voice.male"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 Spacer()
                 if isSelected {
