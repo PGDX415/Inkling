@@ -189,28 +189,28 @@ enum AIError: LocalizedError {
 }
 
 // MARK: - API Response Models
-private struct SiliconFlowErrorResponse: Codable {
-    struct ErrorDetail: Codable {
+private struct SiliconFlowErrorResponse: Codable, Sendable {
+    struct ErrorDetail: Codable, Sendable {
         let message: String
         let type: String?
     }
     let error: ErrorDetail
 }
 
-private struct SiliconFlowResponse: Codable {
+private struct SiliconFlowResponse: Codable, Sendable {
     let choices: [Choice]
 
-    struct Choice: Codable {
+    struct Choice: Codable, Sendable {
         let message: Message
     }
 
-    struct Message: Codable {
+    struct Message: Codable, Sendable {
         let content: String
     }
 }
 
-private struct GeminiErrorResponse: Codable {
-    struct ErrorDetail: Codable {
+private struct GeminiErrorResponse: Codable, Sendable {
+    struct ErrorDetail: Codable, Sendable {
         let code: Int
         let message: String
         let status: String
@@ -218,18 +218,18 @@ private struct GeminiErrorResponse: Codable {
     let error: ErrorDetail
 }
 
-private struct GeminiResponse: Codable {
+private struct GeminiResponse: Codable, Sendable {
     let candidates: [Candidate]?
 
-    struct Candidate: Codable {
+    struct Candidate: Codable, Sendable {
         let content: Content?
     }
 
-    struct Content: Codable {
+    struct Content: Codable, Sendable {
         let parts: [Part]?
     }
 
-    struct Part: Codable {
+    struct Part: Codable, Sendable {
         let text: String?
     }
 }

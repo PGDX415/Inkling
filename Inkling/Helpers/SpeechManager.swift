@@ -1,7 +1,7 @@
 import AVFoundation
 import SwiftUI
 
-@Observable
+@MainActor @Observable
 final class SpeechManager: NSObject, AVSpeechSynthesizerDelegate {
     static let shared = SpeechManager()
 
