@@ -29,6 +29,7 @@ struct SettingsView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var previewingVoice: String?
     @State private var availableVoices: [(language: String, voices: [AVSpeechSynthesisVoice])] = []
+    @State private var personalVoiceAuthorized = false
 
     private let speechRateRange: ClosedRange<Double> = 0.35...0.65
 
@@ -450,6 +451,33 @@ struct SettingsView: View {
         let hasVoices = !allVoices.isEmpty
 
         Section {
+            // Personal Voice authorization prompt
+            if !personalVoiceAuthorized {
+                Button {
+                    Task {
+                        personalVoiceAuthorized = await SpeechManager.requestPersonalVoiceAuth()
+                        availableVoices = SpeechManager.availableVoices()
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "person.wave.2")
+                            .foregroundStyle(.brown)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("voice.my_voice")
+                                .font(.subheadline)
+                                .foregroundStyle(.primary)
+                            Text("voice.my_voice_desc")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
             if hasVoices {
                 ForEach(allVoices, id: \.language) { group in
                     if !group.voices.isEmpty {
@@ -559,14 +587,8 @@ struct SettingsView: View {
     // MARK: - Voice Refresh
     private func refreshVoices() {
         Task {
-            // Request authorization so personal voices become visible in the system voice list
-            let authorized = await SpeechManager.requestPersonalVoiceAuth()
-            if authorized {
-                // Reload voices now that personal voice is accessible
-                availableVoices = SpeechManager.availableVoices()
-            } else if availableVoices.isEmpty {
-                availableVoices = SpeechManager.availableVoices()
-            }
+            personalVoiceAuthorized = await SpeechManager.requestPersonalVoiceAuth()
+            availableVoices = SpeechManager.availableVoices()
         }
     }
 
