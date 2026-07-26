@@ -1,4 +1,4 @@
-import AVFoundation
+@preconcurrency import AVFoundation
 import SwiftUI
 
 @MainActor @Observable
@@ -16,9 +16,18 @@ final class SpeechManager: NSObject, AVSpeechSynthesizerDelegate {
         synthesizer.delegate = self
     }
 
-    /// Available voices, grouped by language
+    /// Personal voices the user has created (iOS 17+)
+    /// Personal voices are identified by their identifier containing "personal"
+    static func personalVoices() -> [AVSpeechSynthesisVoice] {
+        AVSpeechSynthesisVoice.speechVoices().filter { voice in
+            voice.identifier.localizedCaseInsensitiveContains("personal")
+        }
+    }
+
+    /// Available voices, grouped by language (excluding personal voices)
     static func availableVoices() -> [(language: String, voices: [AVSpeechSynthesisVoice])] {
-        let all = AVSpeechSynthesisVoice.speechVoices()
+        let personalIds = Set(Self.personalVoices().map { $0.identifier })
+        let all = AVSpeechSynthesisVoice.speechVoices().filter { !personalIds.contains($0.identifier) }
         let grouped = Dictionary(grouping: all) { voice in
             Locale.current.localizedString(forIdentifier: voice.language) ?? voice.language
         }

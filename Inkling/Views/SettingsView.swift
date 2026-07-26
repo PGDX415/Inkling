@@ -29,6 +29,7 @@ struct SettingsView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var previewingVoice: String?
     @State private var availableVoices: [(language: String, voices: [AVSpeechSynthesisVoice])] = []
+    @State private var myVoices: [AVSpeechSynthesisVoice] = []
 
     private let speechRateRange: ClosedRange<Double> = 0.35...0.65
 
@@ -447,17 +448,31 @@ struct SettingsView: View {
         let allVoices = availableVoices.isEmpty
             ? SpeechManager.availableVoices()
             : availableVoices
-        // Only Chinese voices
         let chineseVoices = allVoices.filter { group in
             group.voices.contains { $0.language.hasPrefix("zh") }
         }
+        let hasChinesVoices = !chineseVoices.isEmpty
 
         Section {
-            if chineseVoices.isEmpty {
-                Text("voice.unavailable")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            } else {
+            // Personal voice (iOS 17+)
+            if !myVoices.isEmpty {
+                DisclosureGroup {
+                    ForEach(myVoices, id: \.identifier) { voice in
+                        personalVoiceRow(voice)
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "person.wave.2.fill")
+                            .foregroundStyle(.brown)
+                        Text("voice.my_voice")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                }
+            }
+
+            // System Chinese voices
+            if hasChinesVoices {
                 ForEach(chineseVoices, id: \.language) { group in
                     let zhVoices = group.voices.filter { $0.language.hasPrefix("zh") }
                     if !zhVoices.isEmpty {
@@ -472,6 +487,10 @@ struct SettingsView: View {
                         }
                     }
                 }
+            } else if myVoices.isEmpty {
+                Text("voice.unavailable")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
 
             // Speech rate
@@ -503,7 +522,48 @@ struct SettingsView: View {
             if availableVoices.isEmpty {
                 availableVoices = SpeechManager.availableVoices()
             }
+            myVoices = SpeechManager.personalVoices()
         }
+    }
+
+    private func personalVoiceRow(_ voice: AVSpeechSynthesisVoice) -> some View {
+        let isSelected = voiceIdentifier == voice.identifier
+        let isPreviewing = previewingVoice == voice.identifier
+
+        return Button {
+            voiceIdentifier = voice.identifier
+            previewingVoice = voice.identifier
+            SpeechManager.shared.preview(
+                voiceIdentifier: voice.identifier,
+                sample: "这是我的声音，春眠不觉晓，处处闻啼鸟"
+            )
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                if previewingVoice == voice.identifier { previewingVoice = nil }
+            }
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(voice.name)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                    Text("voice.my_voice_desc")
+                        .font(.caption)
+                        .foregroundStyle(.brown)
+                }
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(.brown)
+                        .fontWeight(.medium)
+                }
+                if isPreviewing {
+                    Image(systemName: "speaker.wave.2")
+                        .foregroundStyle(.brown)
+                        .font(.caption)
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     private var speedLabel: String {
