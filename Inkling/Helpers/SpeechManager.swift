@@ -47,11 +47,11 @@ final class SpeechManager: NSObject, AVSpeechSynthesizerDelegate {
 
     /// Speak the given text using a specific voice object
     func speak(_ text: String, voice: AVSpeechSynthesisVoice?, rate: Float) {
-        synthesizer.stopSpeaking(at: .immediate)
+        synthesizer.stopSpeaking(at: .word)
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = voice ?? AVSpeechSynthesisVoice(language: "zh-CN")
         utterance.rate = rate
-        utterance.pitchMultiplier = 1.0
+        // Don't set pitchMultiplier — personal voices sound best at default
         isSpeaking = true
         isPaused = false
         synthesizer.speak(utterance)
@@ -59,7 +59,7 @@ final class SpeechManager: NSObject, AVSpeechSynthesizerDelegate {
 
     /// Speak a short sample using a specific voice object
     func preview(voice: AVSpeechSynthesisVoice?, sample: String) {
-        synthesizer.stopSpeaking(at: .immediate)
+        synthesizer.stopSpeaking(at: .word)
         let utterance = AVSpeechUtterance(string: sample)
         utterance.voice = voice ?? AVSpeechSynthesisVoice(language: "zh-CN")
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
