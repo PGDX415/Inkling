@@ -5,7 +5,7 @@ import SwiftUI
 final class SpeechManager: NSObject, AVSpeechSynthesizerDelegate {
     static let shared = SpeechManager()
 
-    private var synthesizer = AVSpeechSynthesizer()
+    private let synthesizer = AVSpeechSynthesizer()
     private var continuation: CheckedContinuation<Void, Never>?
 
     private(set) var isSpeaking = false
@@ -16,25 +16,7 @@ final class SpeechManager: NSObject, AVSpeechSynthesizerDelegate {
         synthesizer.delegate = self
     }
 
-    /// Recreate the synthesizer to pick up newly available voices (e.g. after Personal Voice auth)
-    func refreshSynthesizer() {
-        synthesizer.stopSpeaking(at: .immediate)
-        synthesizer = AVSpeechSynthesizer()
-        synthesizer.delegate = self
-        isSpeaking = false
-        isPaused = false
-    }
-
-    /// Request authorization to use Personal Voice (iOS 17+)
-    static func requestPersonalVoiceAuth() async -> Bool {
-        await withCheckedContinuation { continuation in
-            AVSpeechSynthesizer.requestPersonalVoiceAuthorization { status in
-                continuation.resume(returning: status == .authorized)
-            }
-        }
-    }
-
-    /// Available voices, grouped by language (includes personal voices once authorized)
+    /// Available voices, grouped by language
     static func availableVoices() -> [(language: String, voices: [AVSpeechSynthesisVoice])] {
         let all = AVSpeechSynthesisVoice.speechVoices()
         let grouped = Dictionary(grouping: all) { voice in
@@ -45,13 +27,12 @@ final class SpeechManager: NSObject, AVSpeechSynthesizerDelegate {
             .sorted { $0.language < $1.language }
     }
 
-    /// Speak the given text using a specific voice object
+    /// Speak the given text using a specific voice
     func speak(_ text: String, voice: AVSpeechSynthesisVoice?, rate: Float) {
         synthesizer.stopSpeaking(at: .word)
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = voice ?? AVSpeechSynthesisVoice(language: "zh-CN")
         utterance.rate = rate
-        // Don't set pitchMultiplier — personal voices sound best at default
         isSpeaking = true
         isPaused = false
         synthesizer.speak(utterance)

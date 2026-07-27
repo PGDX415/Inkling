@@ -117,8 +117,6 @@
 "voice.unavailable" = "没有可用的中文语音";
 "voice.female" = "女声";
 "voice.male" = "男声";
-"voice.my_voice" = "我的声音";
-"voice.my_voice_desc" = "在系统设置中创建的个人声音";
 "font.songti" = "宋体";
 "font.songti_desc" = "古典衬线，温润雅致";
 "font.kaiti" = "楷体";

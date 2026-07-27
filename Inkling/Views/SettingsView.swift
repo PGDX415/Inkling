@@ -29,7 +29,6 @@ struct SettingsView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var previewingVoice: String?
     @State private var availableVoices: [(language: String, voices: [AVSpeechSynthesisVoice])] = []
-    @State private var personalVoiceAuthorized = false
 
     private let speechRateRange: ClosedRange<Double> = 0.35...0.65
 
@@ -448,41 +447,18 @@ struct SettingsView: View {
         let allVoices = availableVoices.isEmpty
             ? SpeechManager.availableVoices()
             : availableVoices
-        let hasVoices = !allVoices.isEmpty
+        let chineseVoices = allVoices.filter { group in
+            group.voices.contains { $0.language.hasPrefix("zh") }
+        }
+        let hasChineseVoices = !chineseVoices.isEmpty
 
         Section {
-            // Personal Voice authorization prompt
-            if !personalVoiceAuthorized {
-                Button {
-                    Task {
-                        personalVoiceAuthorized = await SpeechManager.requestPersonalVoiceAuth()
-                        availableVoices = SpeechManager.availableVoices()
-                    }
-                } label: {
-                    HStack {
-                        Image(systemName: "person.wave.2")
-                            .foregroundStyle(.brown)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("voice.my_voice")
-                                .font(.subheadline)
-                                .foregroundStyle(.primary)
-                            Text("voice.my_voice_desc")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-
-            if hasVoices {
-                ForEach(allVoices, id: \.language) { group in
-                    if !group.voices.isEmpty {
+            if hasChineseVoices {
+                ForEach(chineseVoices, id: \.language) { group in
+                    let zhVoices = group.voices.filter { $0.language.hasPrefix("zh") }
+                    if !zhVoices.isEmpty {
                         DisclosureGroup {
-                            ForEach(group.voices, id: \.identifier) { voice in
+                            ForEach(zhVoices, id: \.identifier) { voice in
                                 voiceRow(voice, language: group.language)
                             }
                         } label: {
@@ -554,26 +530,11 @@ struct SettingsView: View {
                     Text(voice.name)
                         .font(.subheadline)
                         .foregroundStyle(.primary)
-                    // Show voice info: gender for bundled, language + label for personal
-                    let isBundled = voice.identifier.contains("com.apple.ttsbundle") || voice.identifier.contains("com.apple.voice")
-                    if isBundled {
-                        Text(voice.gender == .female
-                             ? String(localized: "voice.female")
-                             : String(localized: "voice.male"))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    } else {
-                        let qualityStr: String = {
-                            switch voice.quality {
-                            case .premium: return "premium"
-                            case .enhanced: return "enhanced"
-                            default: return "default"
-                            }
-                        }()
-                        Text("\(String(localized: "voice.my_voice")) • \(voice.language) • \(qualityStr)")
-                            .font(.caption)
-                            .foregroundStyle(.brown)
-                    }
+                    Text(voice.gender == .female
+                         ? String(localized: "voice.female")
+                         : String(localized: "voice.male"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 Spacer()
                 if isSelected {
@@ -593,12 +554,7 @@ struct SettingsView: View {
 
     // MARK: - Voice Refresh
     private func refreshVoices() {
-        Task {
-            let authorized = await SpeechManager.requestPersonalVoiceAuth()
-            personalVoiceAuthorized = authorized
-            if authorized {
-                SpeechManager.shared.refreshSynthesizer()
-            }
+        if availableVoices.isEmpty {
             availableVoices = SpeechManager.availableVoices()
         }
     }
