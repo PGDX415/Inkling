@@ -554,7 +554,7 @@ struct SettingsView: View {
                     Text(voice.name)
                         .font(.subheadline)
                         .foregroundStyle(.primary)
-                    // Show gender hint
+                    // Show voice info: gender for bundled, language + label for personal
                     let isBundled = voice.identifier.contains("com.apple.ttsbundle") || voice.identifier.contains("com.apple.voice")
                     if isBundled {
                         Text(voice.gender == .female
@@ -563,7 +563,7 @@ struct SettingsView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     } else {
-                        Text("voice.my_voice")
+                        Text("voice.my_voice • \(voice.language)")
                             .font(.caption)
                             .foregroundStyle(.brown)
                     }
