@@ -563,7 +563,14 @@ struct SettingsView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     } else {
-                        Text("voice.my_voice • \(voice.language)")
+                        let qualityStr: String = {
+                            switch voice.quality {
+                            case .premium: return "premium"
+                            case .enhanced: return "enhanced"
+                            default: return "default"
+                            }
+                        }()
+                        Text("voice.my_voice • \(voice.language) • \(qualityStr)")
                             .font(.caption)
                             .foregroundStyle(.brown)
                     }
