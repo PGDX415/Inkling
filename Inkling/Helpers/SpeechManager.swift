@@ -5,7 +5,7 @@ import SwiftUI
 final class SpeechManager: NSObject, AVSpeechSynthesizerDelegate {
     static let shared = SpeechManager()
 
-    private let synthesizer = AVSpeechSynthesizer()
+    private var synthesizer = AVSpeechSynthesizer()
     private var continuation: CheckedContinuation<Void, Never>?
 
     private(set) var isSpeaking = false
@@ -14,6 +14,15 @@ final class SpeechManager: NSObject, AVSpeechSynthesizerDelegate {
     override private init() {
         super.init()
         synthesizer.delegate = self
+    }
+
+    /// Recreate the synthesizer to pick up newly available voices (e.g. after Personal Voice auth)
+    func refreshSynthesizer() {
+        synthesizer.stopSpeaking(at: .immediate)
+        synthesizer = AVSpeechSynthesizer()
+        synthesizer.delegate = self
+        isSpeaking = false
+        isPaused = false
     }
 
     /// Request authorization to use Personal Voice (iOS 17+)

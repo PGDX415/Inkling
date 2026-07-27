@@ -570,7 +570,7 @@ struct SettingsView: View {
                             default: return "default"
                             }
                         }()
-                        Text("voice.my_voice • \(voice.language) • \(qualityStr)")
+                        Text("\(String(localized: "voice.my_voice")) • \(voice.language) • \(qualityStr)")
                             .font(.caption)
                             .foregroundStyle(.brown)
                     }
@@ -594,7 +594,11 @@ struct SettingsView: View {
     // MARK: - Voice Refresh
     private func refreshVoices() {
         Task {
-            personalVoiceAuthorized = await SpeechManager.requestPersonalVoiceAuth()
+            let authorized = await SpeechManager.requestPersonalVoiceAuth()
+            personalVoiceAuthorized = authorized
+            if authorized {
+                SpeechManager.shared.refreshSynthesizer()
+            }
             availableVoices = SpeechManager.availableVoices()
         }
     }
