@@ -56,6 +56,7 @@ final class WeatherManager: NSObject, CLLocationManagerDelegate {
 
     private let locationManager = CLLocationManager()
     private var locationContinuation: CheckedContinuation<CLLocation?, Never>?
+    private var authContinuation: CheckedContinuation<Bool, Never>?
 
     private(set) var isFetching = false
     var authorizationDenied = false
@@ -72,19 +73,14 @@ final class WeatherManager: NSObject, CLLocationManagerDelegate {
         isFetching = true
         defer { isFetching = false }
 
-        let status = locationManager.authorizationStatus
-        if status == .denied || status == .restricted {
+        // Wait for location authorization (timeout after 15s)
+        let authorized = await ensureAuthorized()
+        guard authorized else {
             authorizationDenied = true
             return nil
         }
 
-        if status == .notDetermined {
-            locationManager.requestWhenInUseAuthorization()
-            // Wait briefly for user response
-            try? await Task.sleep(nanoseconds: 500_000_000)  // 0.5s
-        }
-
-        // Get current location
+        // Get current location (timeout after 10s)
         let location: CLLocation? = await withCheckedContinuation { continuation in
             self.locationContinuation = continuation
             locationManager.requestLocation()
@@ -107,7 +103,36 @@ final class WeatherManager: NSObject, CLLocationManagerDelegate {
         )
     }
 
+    // MARK: - Authorization
+    private func ensureAuthorized() async -> Bool {
+        let status = locationManager.authorizationStatus
+        switch status {
+        case .authorizedWhenInUse, .authorizedAlways:
+            return true
+        case .denied, .restricted:
+            return false
+        case .notDetermined:
+            locationManager.requestWhenInUseAuthorization()
+            return await withCheckedContinuation { continuation in
+                self.authContinuation = continuation
+            }
+        @unknown default:
+            return false
+        }
+    }
+
     // MARK: - CLLocationManagerDelegate
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        let status = manager.authorizationStatus
+        if status == .authorizedWhenInUse || status == .authorizedAlways {
+            authContinuation?.resume(returning: true)
+            authContinuation = nil
+        } else if status == .denied || status == .restricted {
+            authContinuation?.resume(returning: false)
+            authContinuation = nil
+        }
+    }
+
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         locationContinuation?.resume(returning: locations.last)
         locationContinuation = nil
