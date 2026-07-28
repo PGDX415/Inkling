@@ -21,6 +21,8 @@ struct JournalListView: View {
     @State private var composingEntry: JournalEntry?
     @State private var showDeleteAlert = false
     @State private var entryToDelete: JournalEntry?
+    @State private var selectedTag: String? = nil
+    var initialTag: String? = nil
 
     /// Look up the currently selected entry by its ID
     private var selectedEntry: JournalEntry? {
@@ -30,6 +32,17 @@ struct JournalListView: View {
 
     private var sortOrder: SortOrder {
         SortOrder(rawValue: sortOrderRaw) ?? .newestFirst
+    }
+
+    /// All unique tags from all entries
+    private var allTags: [String] {
+        JournalEntry.allTags(from: entries)
+    }
+
+    /// Entries filtered by selected tag
+    private var tagFilteredEntries: [JournalEntry] {
+        guard let tag = selectedTag else { return sortedEntries }
+        return sortedEntries.filter { $0.tags.contains(tag) }
     }
 
     private var sortedEntries: [JournalEntry] {
@@ -48,7 +61,7 @@ struct JournalListView: View {
     }
 
     private var displayedEntries: [JournalEntry] {
-        viewModel.filteredEntries(sortedEntries)
+        viewModel.filteredEntries(tagFilteredEntries)
     }
 
     /// Entries from previous years on this same month and day
@@ -136,7 +149,13 @@ struct JournalListView: View {
             if entries.isEmpty {
                 emptyStateView
             } else {
-                entryListView
+                VStack(spacing: 0) {
+                    // Tag filter bar
+                    if !viewModel.isSearching && !allTags.isEmpty {
+                        tagFilterBar
+                    }
+                    entryListView
+                }
             }
         }
         .navigationTitle("app.name")
@@ -156,6 +175,65 @@ struct JournalListView: View {
                 .tint(.brown)
             }
         }
+        .onAppear {
+            if let initialTag, selectedTag == nil {
+                selectedTag = initialTag
+            }
+        }
+    }
+
+    // MARK: - Tag Filter
+    private var tagFilterBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                // "All" button
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) { selectedTag = nil }
+                } label: {
+                    Text("journal.all_entries")
+                        .font(.caption)
+                        .fontWeight(selectedTag == nil ? .semibold : .regular)
+                        .foregroundStyle(selectedTag == nil ? .white : .brown)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(selectedTag == nil ? Color.brown : Color.brown.opacity(0.1))
+                        )
+                }
+                .buttonStyle(.plain)
+
+                // Tag buttons
+                ForEach(allTags, id: \.self) { tag in
+                    let count = entries.filter { $0.tags.contains(tag) }.count
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedTag = (selectedTag == tag) ? nil : tag
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("#\(tag)")
+                                .font(.caption)
+                            Text("\(count)")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        .fontWeight(selectedTag == tag ? .semibold : .regular)
+                        .foregroundStyle(selectedTag == tag ? .white : .brown)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(selectedTag == tag ? Color.brown : Color.brown.opacity(0.1))
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 8)
+        }
+        .background(Color("JournalBackground"))
     }
 
     // MARK: - Detail Column

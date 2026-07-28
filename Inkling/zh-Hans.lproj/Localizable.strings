@@ -154,6 +154,7 @@
 /* On This Day */
 "journal.on_this_day" = "那年今日";
 "journal.daily_prompt" = "今日随笔";
+"journal.all_entries" = "全部";
 
 "font.songti" = "宋体";
 "font.songti_desc" = "古典衬线，温润雅致";

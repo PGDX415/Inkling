@@ -93,6 +93,25 @@ struct JournalRowView: View {
                 titleView
             }
 
+            // Tags
+            if !entry.tags.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 4) {
+                        ForEach(entry.tags, id: \.self) { tag in
+                            Text("#\(tag)")
+                                .font(.caption2)
+                                .foregroundStyle(.brown.opacity(0.6))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(Color.brown.opacity(0.06))
+                                )
+                        }
+                    }
+                }
+            }
+
             // Content preview
             previewView
         }

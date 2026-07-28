@@ -23,6 +23,8 @@ struct JournalEditView: View {
     @State private var weatherData: WeatherData?
     @State private var isFetchingWeather = false
     @State private var selectedMood: String? = nil
+    @State private var tagInput = ""
+    @State private var entryTags: [String] = []
 
     @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.deepseek.rawValue
     @AppStorage("aiApiKey_deepseek") private var deepseekKey = ""
@@ -56,6 +58,12 @@ struct JournalEditView: View {
 
             // Mood picker
             moodPicker
+
+            Divider()
+                .overlay(Color.brown.opacity(0.2))
+
+            // Tag editor
+            tagEditor
 
             Divider()
                 .overlay(Color.brown.opacity(0.2))
@@ -165,9 +173,10 @@ struct JournalEditView: View {
             }
         }
         .task {
-            // Load existing photos, mood from the entry
+            // Load existing data from the entry
             entryPhotos = entry.photos?.sorted(by: { $0.sortOrder < $1.sortOrder }) ?? []
             selectedMood = entry.mood
+            entryTags = entry.tags
             try? await Task.sleep(for: .seconds(0.5))
             isFocused = true
 
@@ -326,6 +335,75 @@ struct JournalEditView: View {
             .padding(.bottom, 16)
     }
 
+    private var tagEditor: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Existing tags
+            if !entryTags.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(entryTags, id: \.self) { tag in
+                            HStack(spacing: 4) {
+                                Text("#\(tag)")
+                                    .font(.caption)
+                                    .foregroundStyle(.brown)
+                                Button {
+                                    entryTags.removeAll { $0 == tag }
+                                    scheduleAutoSave()
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 8, weight: .bold))
+                                        .foregroundStyle(.brown.opacity(0.6))
+                                }
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(Color.brown.opacity(0.1))
+                            )
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
+            }
+
+            // Input field
+            HStack(spacing: 8) {
+                Image(systemName: "tag")
+                    .font(.caption)
+                    .foregroundStyle(.brown.opacity(0.5))
+
+                TextField("添加标签...", text: $tagInput)
+                    .font(.subheadline)
+                    .onSubmit {
+                        addTag()
+                    }
+
+                if !tagInput.isEmpty {
+                    Button {
+                        addTag()
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(.brown)
+                            .font(.subheadline)
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+        }
+        .padding(.vertical, 6)
+    }
+
+    private func addTag() {
+        let trimmed = tagInput.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        if !entryTags.contains(trimmed) {
+            entryTags.append(trimmed)
+            scheduleAutoSave()
+        }
+        tagInput = ""
+    }
+
     private var moodPicker: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
@@ -468,6 +546,7 @@ struct JournalEditView: View {
         entry.createdAt = entryDate
         entry.modifiedAt = Date()
         entry.mood = selectedMood
+        entry.tagString = entryTags.joined(separator: ",")
 
         // Sync photos: remove old ones, insert current ones
         if let existingPhotos = entry.photos {

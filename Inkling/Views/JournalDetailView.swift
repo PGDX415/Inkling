@@ -37,6 +37,11 @@ struct JournalDetailView: View {
                 Divider()
                     .overlay(Color.brown.opacity(0.2))
 
+                // Tags
+                if !entry.tags.isEmpty {
+                    tagsView
+                }
+
                 // Content
                 contentView
 
@@ -194,6 +199,25 @@ struct JournalDetailView: View {
                     }
                 }
             }
+        }
+    }
+
+    private var tagsView: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                ForEach(entry.tags, id: \.self) { tag in
+                    Text("#\(tag)")
+                        .font(.caption)
+                        .foregroundStyle(.brown)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color.brown.opacity(0.1))
+                        )
+                }
+            }
+            .padding(.horizontal, 20)
         }
     }
 

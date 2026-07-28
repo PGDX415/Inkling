@@ -154,6 +154,7 @@
 /* On This Day */
 "journal.on_this_day" = "On This Day";
 "journal.daily_prompt" = "Today's Prompt";
+"journal.all_entries" = "All";
 
 "font.songti" = "Songti";
 "font.songti_desc" = "Elegant serif, warm and classic";

@@ -20,6 +20,29 @@ final class JournalEntry {
     var mood: String? = nil          // MoodType rawValue
     var isBookmarked: Bool = false
 
+    // MARK: - Tags
+    /// Comma-separated tag string, e.g. "旅行,工作,家人"
+    var tagString: String = ""
+
+    /// Parsed tag list (read-only)
+    var tags: [String] {
+        tagString
+            .components(separatedBy: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+    }
+
+    /// All unique tags across all entries (static helper)
+    static func allTags(from entries: [JournalEntry]) -> [String] {
+        var tagSet = Set<String>()
+        for entry in entries {
+            for tag in entry.tags {
+                tagSet.insert(tag)
+            }
+        }
+        return tagSet.sorted()
+    }
+
     init(content: String = "", createdAt: Date = Date()) {
         self.uuid = UUID().uuidString
         self.createdAt = createdAt
