@@ -45,6 +45,10 @@ struct JournalListView: View {
         return sortedEntries.filter { $0.tags.contains(tag) }
     }
 
+    private var currentStreak: Int {
+        JournalEntry.streak(from: entries)
+    }
+
     private var sortedEntries: [JournalEntry] {
         switch sortOrder {
         case .newestFirst:
@@ -331,6 +335,13 @@ struct JournalListView: View {
                     .padding(.vertical, 40)
                 }
             } else {
+                // Streak counter
+                if !viewModel.isSearching && currentStreak > 0 {
+                    Section {
+                        streakView
+                    }
+                }
+
                 // Daily writing prompt
                 if !viewModel.isSearching {
                     Section {
@@ -380,6 +391,29 @@ struct JournalListView: View {
         .listStyle(.insetGrouped)
         .onChange(of: selectedEntryID) { _, _ in
             isCreatingNew = false
+        }
+    }
+
+    // MARK: - Streak
+    private var streakView: some View {
+        HStack(spacing: 8) {
+            Text(streakEmoji)
+                .font(.title3)
+            Text(String(format: String(localized: "journal.streak_days"), currentStreak))
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundStyle(.brown)
+            Spacer()
+        }
+        .listRowBackground(Color.brown.opacity(0.04))
+    }
+
+    private var streakEmoji: String {
+        switch currentStreak {
+        case 1...2: return "🔥"
+        case 3...6: return "🔥🔥"
+        case 7...13: return "🔥🔥🔥"
+        default: return "🔥🔥🔥🔥"
         }
     }
 

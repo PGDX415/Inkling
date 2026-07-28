@@ -155,6 +155,7 @@
 "journal.on_this_day" = "On This Day";
 "journal.daily_prompt" = "Today's Prompt";
 "journal.all_entries" = "All";
+"journal.streak_days" = "%d day streak";
 
 "font.songti" = "Songti";
 "font.songti_desc" = "Elegant serif, warm and classic";

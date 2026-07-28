@@ -32,6 +32,29 @@ final class JournalEntry {
             .filter { !$0.isEmpty }
     }
 
+    /// Calculate current writing streak (consecutive days with entries)
+    /// Counts from today (or yesterday if today hasn't been written) backwards
+    static func streak(from entries: [JournalEntry]) -> Int {
+        let calendar = Calendar.current
+        let activeDates = Set(entries.compactMap { entry -> Date? in
+            let comps = calendar.dateComponents([.year, .month, .day], from: entry.createdAt)
+            return calendar.date(from: comps)
+        })
+
+        let today = calendar.startOfDay(for: Date())
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today) ?? today
+
+        // Skip today if not written yet
+        var date = activeDates.contains(today) ? today : yesterday
+        var streak = 0
+
+        while activeDates.contains(date) {
+            streak += 1
+            date = calendar.date(byAdding: .day, value: -1, to: date) ?? date
+        }
+        return streak
+    }
+
     /// All unique tags across all entries (static helper)
     static func allTags(from entries: [JournalEntry]) -> [String] {
         var tagSet = Set<String>()

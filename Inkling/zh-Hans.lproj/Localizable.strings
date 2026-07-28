@@ -155,6 +155,7 @@
 "journal.on_this_day" = "那年今日";
 "journal.daily_prompt" = "今日随笔";
 "journal.all_entries" = "全部";
+"journal.streak_days" = "已坚持 %d 天";
 
 "font.songti" = "宋体";
 "font.songti_desc" = "古典衬线，温润雅致";
