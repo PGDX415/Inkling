@@ -147,6 +147,10 @@
 "reminder.title" = "Time to write";
 "reminder.body" = "A moment captured is a moment kept. What's on your mind today?";
 
+/* On This Day */
+"journal.on_this_day" = "On This Day";
+"journal.daily_prompt" = "Today's Prompt";
+
 "font.songti" = "Songti";
 "font.songti_desc" = "Elegant serif, warm and classic";
 "font.kaiti" = "Kaiti";

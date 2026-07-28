@@ -147,6 +147,10 @@
 "reminder.title" = "该写日记了";
 "reminder.body" = "一字一句，拾起时光。今天想写些什么？";
 
+/* On This Day */
+"journal.on_this_day" = "那年今日";
+"journal.daily_prompt" = "今日随笔";
+
 "font.songti" = "宋体";
 "font.songti_desc" = "古典衬线，温润雅致";
 "font.kaiti" = "楷体";

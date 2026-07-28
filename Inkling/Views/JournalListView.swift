@@ -10,6 +10,7 @@ import SwiftData
 struct JournalListView: View {
     @Environment(\.modelContext) private var modelContext
     @AppStorage("sortOrder") private var sortOrderRaw = SortOrder.newestFirst.rawValue
+    @AppStorage("fontStyle") private var fontStyle = FontStyle.songti.rawValue
     @Query(filter: #Predicate<JournalEntry> { $0.deletedAt == nil },
            sort: \JournalEntry.createdAt, order: .reverse) private var entries: [JournalEntry]
 
@@ -48,6 +49,16 @@ struct JournalListView: View {
 
     private var displayedEntries: [JournalEntry] {
         viewModel.filteredEntries(sortedEntries)
+    }
+
+    /// Entries from previous years on this same month and day
+    private var onThisDayEntries: [JournalEntry] {
+        let today = Calendar.current.dateComponents([.month, .day], from: Date())
+        let thisYear = Calendar.current.component(.year, from: Date())
+        return entries.filter { entry in
+            let comps = Calendar.current.dateComponents([.year, .month, .day], from: entry.createdAt)
+            return comps.month == today.month && comps.day == today.day && (comps.year ?? thisYear) < thisYear
+        }.sorted { $0.createdAt > $1.createdAt }
     }
 
     private var groupedEntries: [(month: Date, entries: [JournalEntry])] {
@@ -191,32 +202,38 @@ struct JournalListView: View {
 
     // MARK: - Empty State (sidebar)
     private var emptyStateView: some View {
-        VStack(spacing: 16) {
-            Spacer()
-
-            Image(systemName: "book.closed")
-                .font(.system(size: 48))
-                .foregroundStyle(.brown.opacity(0.4))
-
-            Text("journal.empty")
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-
-            Button {
-                createNewEntry()
-            } label: {
-                Label("journal.new_entry", systemImage: "square.and.pencil")
-                    .fontWeight(.medium)
+        List {
+            Section {
+                dailyQuoteView
             }
-            .buttonStyle(.bordered)
-            .tint(.brown)
-            .padding(.top, 8)
 
-            Spacer()
+            Section {
+                VStack(spacing: 16) {
+                    Image(systemName: "book.closed")
+                        .font(.system(size: 48))
+                        .foregroundStyle(.brown.opacity(0.4))
+
+                    Text("journal.empty")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+
+                    Button {
+                        createNewEntry()
+                    } label: {
+                        Label("journal.new_entry", systemImage: "square.and.pencil")
+                            .fontWeight(.medium)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.brown)
+                    .padding(.top, 8)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .listStyle(.insetGrouped)
     }
 
     // MARK: - Entry List (sidebar)
@@ -236,6 +253,28 @@ struct JournalListView: View {
                     .padding(.vertical, 40)
                 }
             } else {
+                // Daily writing prompt
+                if !viewModel.isSearching {
+                    Section {
+                        dailyQuoteView
+                    }
+                }
+
+                // On This Day
+                if !viewModel.isSearching && !onThisDayEntries.isEmpty {
+                    Section {
+                        ForEach(onThisDayEntries) { entry in
+                            JournalRowView(entry: entry, searchText: viewModel.searchText)
+                                .tag(entry.uuid)
+                                .listRowBackground(
+                                    Color.brown.opacity(0.04)
+                                )
+                        }
+                    } header: {
+                        onThisDayHeader
+                    }
+                }
+
                 ForEach(groupedEntries, id: \.month) { group in
                     Section {
                         ForEach(group.entries) { entry in
@@ -263,6 +302,46 @@ struct JournalListView: View {
         .listStyle(.insetGrouped)
         .onChange(of: selectedEntryID) { _, _ in
             isCreatingNew = false
+        }
+    }
+
+    // MARK: - Daily Quote & On This Day
+    private var dailyQuoteView: some View {
+        let quote = DailyQuote.today()
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Image(systemName: "text.quote")
+                    .font(.caption)
+                    .foregroundStyle(.brown.opacity(0.5))
+                Text("journal.daily_prompt")
+                    .font(.caption)
+                    .foregroundStyle(.brown.opacity(0.5))
+                    .textCase(nil)
+            }
+
+            Text(quote)
+                .font(.custom(FontStyle(rawValue: fontStyle)?.fontName ?? FontStyle.songti.fontName, size: 15))
+                .foregroundStyle(.secondary)
+                .lineSpacing(6)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, 4)
+        .listRowBackground(Color.clear)
+    }
+
+    private var onThisDayHeader: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "calendar.badge.clock")
+                .font(.caption)
+                .foregroundStyle(.brown)
+            Text("journal.on_this_day")
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundStyle(.brown)
+                .textCase(nil)
+            Text("· \(onThisDayEntries.count)")
+                .font(.caption)
+                .foregroundStyle(.brown.opacity(0.6))
         }
     }
 
