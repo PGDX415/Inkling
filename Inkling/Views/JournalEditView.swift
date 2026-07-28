@@ -22,6 +22,7 @@ struct JournalEditView: View {
     @State private var polishError: String?
     @State private var weatherData: WeatherData?
     @State private var isFetchingWeather = false
+    @State private var selectedMood: String? = nil
 
     @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.deepseek.rawValue
     @AppStorage("aiApiKey_deepseek") private var deepseekKey = ""
@@ -49,6 +50,12 @@ struct JournalEditView: View {
         VStack(spacing: 0) {
             // Date picker row
             datePickerRow
+
+            Divider()
+                .overlay(Color.brown.opacity(0.2))
+
+            // Mood picker
+            moodPicker
 
             Divider()
                 .overlay(Color.brown.opacity(0.2))
@@ -158,8 +165,9 @@ struct JournalEditView: View {
             }
         }
         .task {
-            // Load existing photos from the entry
+            // Load existing photos, mood from the entry
             entryPhotos = entry.photos?.sorted(by: { $0.sortOrder < $1.sortOrder }) ?? []
+            selectedMood = entry.mood
             try? await Task.sleep(for: .seconds(0.5))
             isFocused = true
 
@@ -318,6 +326,35 @@ struct JournalEditView: View {
             .padding(.bottom, 16)
     }
 
+    private var moodPicker: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(MoodType.allCases, id: \.rawValue) { mood in
+                    Button {
+                        selectedMood = (selectedMood == mood.rawValue) ? nil : mood.rawValue
+                    } label: {
+                        VStack(spacing: 2) {
+                            Text(mood.emoji)
+                                .font(.title2)
+                            Text(String(localized: String.LocalizationValue(mood.localizationKey)))
+                                .font(.caption2)
+                                .foregroundStyle(selectedMood == mood.rawValue ? .brown : .secondary)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(selectedMood == mood.rawValue ? Color.brown.opacity(0.1) : Color.clear)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+        }
+    }
+
     // MARK: - Computed properties
     private var isNewEntry: Bool {
         entry.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -430,6 +467,7 @@ struct JournalEditView: View {
         entry.content = content
         entry.createdAt = entryDate
         entry.modifiedAt = Date()
+        entry.mood = selectedMood
 
         // Sync photos: remove old ones, insert current ones
         if let existingPhotos = entry.photos {

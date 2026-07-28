@@ -45,6 +45,13 @@ struct JournalRowView: View {
                     }
                 }
 
+                // Bookmark indicator
+                if entry.isBookmarked {
+                    Image(systemName: "bookmark.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.brown)
+                }
+
                 Spacer()
 
                 // Photo indicator
@@ -76,8 +83,15 @@ struct JournalRowView: View {
                     )
             }
 
-            // Title (first line)
-            titleView
+            // Title (first line) with mood
+            HStack(spacing: 6) {
+                if let moodRaw = entry.mood,
+                   let mood = MoodType(rawValue: moodRaw) {
+                    Text(mood.emoji)
+                        .font(.subheadline)
+                }
+                titleView
+            }
 
             // Content preview
             previewView

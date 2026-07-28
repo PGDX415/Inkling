@@ -34,9 +34,15 @@ struct JournalListView: View {
     private var sortedEntries: [JournalEntry] {
         switch sortOrder {
         case .newestFirst:
-            return entries.sorted { $0.createdAt > $1.createdAt }
+            return entries.sorted {
+                if $0.isBookmarked != $1.isBookmarked { return $0.isBookmarked }
+                return $0.createdAt > $1.createdAt
+            }
         case .oldestFirst:
-            return entries.sorted { $0.createdAt < $1.createdAt }
+            return entries.sorted {
+                if $0.isBookmarked != $1.isBookmarked { return $0.isBookmarked }
+                return $0.createdAt < $1.createdAt
+            }
         }
     }
 

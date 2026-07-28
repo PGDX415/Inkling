@@ -129,6 +129,24 @@
 "weather.snow" = "雪";
 "weather.thunderstorm" = "雷阵雨";
 
+/* Mood */
+"mood.happy" = "开心";
+"mood.calm" = "平静";
+"mood.sad" = "难过";
+"mood.angry" = "生气";
+"mood.excited" = "兴奋";
+"mood.tired" = "疲惫";
+"mood.anxious" = "焦虑";
+"mood.thoughtful" = "沉思";
+
+/* Reminder */
+"settings.section_reminder" = "每日提醒";
+"settings.reminder" = "写作提醒";
+"settings.reminder_description" = "每天定时提醒你写日记。";
+"settings.reminder_time" = "提醒时间";
+"reminder.title" = "该写日记了";
+"reminder.body" = "一字一句，拾起时光。今天想写些什么？";
+
 "font.songti" = "宋体";
 "font.songti_desc" = "古典衬线，温润雅致";
 "font.kaiti" = "楷体";

@@ -16,6 +16,10 @@ final class JournalEntry {
     var temperature: Double? = nil       // Celsius
     var weatherLocation: String? = nil   // City name
 
+    // MARK: - Mood & Bookmark
+    var mood: String? = nil          // MoodType rawValue
+    var isBookmarked: Bool = false
+
     init(content: String = "", createdAt: Date = Date()) {
         self.uuid = UUID().uuidString
         self.createdAt = createdAt

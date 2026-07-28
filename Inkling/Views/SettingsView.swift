@@ -17,6 +17,9 @@ struct SettingsView: View {
     @AppStorage("displayMode") private var displayMode = DisplayMode.system.rawValue
     @AppStorage("voiceIdentifier") private var voiceIdentifier = ""
     @AppStorage("speechRate") private var speechRate: Double = 0.5
+    @AppStorage("reminderEnabled") private var reminderEnabled = false
+    @AppStorage("reminderHour") private var reminderHour = 21
+    @AppStorage("reminderMinute") private var reminderMinute = 0
     @Query private var profiles: [UserProfile]
     @Environment(\.modelContext) private var modelContext
     @State private var resolvedProfile: UserProfile?
@@ -108,6 +111,44 @@ struct SettingsView: View {
                     .disabled(!BiometricAuthManager.shared.isAvailable)
                 } header: {
                     Text("settings.section_privacy")
+                }
+
+                // MARK: - Reminder Section
+                Section {
+                    Toggle(isOn: $reminderEnabled) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("settings.reminder")
+                                .font(.body)
+                            Text("settings.reminder_description")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .tint(.brown)
+                    .onChange(of: reminderEnabled) { _, enabled in
+                        scheduleReminder(enabled: enabled)
+                    }
+
+                    if reminderEnabled {
+                        DatePicker(
+                            String(localized: "settings.reminder_time"),
+                            selection: Binding(
+                                get: {
+                                    Calendar.current.date(from: DateComponents(hour: reminderHour, minute: reminderMinute)) ?? Date()
+                                },
+                                set: { date in
+                                    let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+                                    reminderHour = components.hour ?? 21
+                                    reminderMinute = components.minute ?? 0
+                                    scheduleReminder(enabled: reminderEnabled)
+                                }
+                            ),
+                            displayedComponents: .hourAndMinute
+                        )
+                        .tint(.brown)
+                    }
+                } header: {
+                    Text("settings.section_reminder")
                 }
 
                 // MARK: - Display Section
@@ -550,6 +591,29 @@ struct SettingsView: View {
             }
         }
         .buttonStyle(.plain)
+    }
+
+    // MARK: - Reminder
+    private func scheduleReminder(enabled: Bool) {
+        Task {
+            if enabled {
+                let granted = await NotificationManager.shared.requestAuthorization()
+                if granted {
+                    NotificationManager.shared.scheduleDailyReminder(
+                        hour: reminderHour,
+                        minute: reminderMinute,
+                        enabled: true
+                    )
+                } else {
+                    // User denied notifications — revert toggle
+                    await MainActor.run { reminderEnabled = false }
+                }
+            } else {
+                NotificationManager.shared.scheduleDailyReminder(
+                    hour: 0, minute: 0, enabled: false
+                )
+            }
+        }
     }
 
     // MARK: - Voice Refresh

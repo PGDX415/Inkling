@@ -129,6 +129,24 @@
 "weather.snow" = "Snow";
 "weather.thunderstorm" = "Thunderstorm";
 
+/* Mood */
+"mood.happy" = "Happy";
+"mood.calm" = "Calm";
+"mood.sad" = "Sad";
+"mood.angry" = "Angry";
+"mood.excited" = "Excited";
+"mood.tired" = "Tired";
+"mood.anxious" = "Anxious";
+"mood.thoughtful" = "Pensive";
+
+/* Reminder */
+"settings.section_reminder" = "Daily Reminder";
+"settings.reminder" = "Writing Reminder";
+"settings.reminder_description" = "Receive a daily notification to write your journal.";
+"settings.reminder_time" = "Reminder Time";
+"reminder.title" = "Time to write";
+"reminder.body" = "A moment captured is a moment kept. What's on your mind today?";
+
 "font.songti" = "Songti";
 "font.songti_desc" = "Elegant serif, warm and classic";
 "font.kaiti" = "Kaiti";

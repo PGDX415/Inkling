@@ -55,15 +55,26 @@ struct JournalDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                if !entry.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                HStack(spacing: 12) {
+                    // Bookmark toggle
                     Button {
-                        toggleSpeech()
+                        entry.isBookmarked.toggle()
+                        try? modelContext.save()
                     } label: {
-                        Image(systemName: speechManager.isSpeaking && !speechManager.isPaused
-                              ? "speaker.wave.2.fill"
-                              : "speaker.wave.2")
+                        Image(systemName: entry.isBookmarked ? "bookmark.fill" : "bookmark")
                     }
                     .tint(.brown)
+
+                    if !entry.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Button {
+                            toggleSpeech()
+                        } label: {
+                            Image(systemName: speechManager.isSpeaking && !speechManager.isPaused
+                                  ? "speaker.wave.2.fill"
+                                  : "speaker.wave.2")
+                        }
+                        .tint(.brown)
+                    }
                 }
             }
 
@@ -153,6 +164,18 @@ struct JournalDetailView: View {
                 .font(.title3)
                 .fontWeight(.regular)
                 .foregroundStyle(.primary)
+
+            // Mood
+            if let moodRaw = entry.mood,
+               let mood = MoodType(rawValue: moodRaw) {
+                HStack(spacing: 4) {
+                    Text(mood.emoji)
+                        .font(.title3)
+                    Text(String(localized: String.LocalizationValue(mood.localizationKey)))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
 
             // Weather info
             if let conditionRaw = entry.weatherCondition,
