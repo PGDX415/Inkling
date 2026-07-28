@@ -11,6 +11,11 @@ final class JournalEntry {
     var deletedAt: Date? = nil
     @Relationship(deleteRule: .cascade, inverse: \JournalPhoto.entry) var photos: [JournalPhoto]? = []
 
+    // MARK: - Weather
+    var weatherCondition: String? = nil  // WeatherCondition rawValue
+    var temperature: Double? = nil       // Celsius
+    var weatherLocation: String? = nil   // City name
+
     init(content: String = "", createdAt: Date = Date()) {
         self.uuid = UUID().uuidString
         self.createdAt = createdAt

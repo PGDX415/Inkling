@@ -153,6 +153,24 @@ struct JournalDetailView: View {
                 .font(.title3)
                 .fontWeight(.regular)
                 .foregroundStyle(.primary)
+
+            // Weather info
+            if let conditionRaw = entry.weatherCondition,
+               let condition = WeatherCondition(rawValue: conditionRaw),
+               let temp = entry.temperature {
+                HStack(spacing: 6) {
+                    Image(systemName: condition.symbolName)
+                        .foregroundStyle(.brown)
+                    Text("\(String(localized: String.LocalizationValue(condition.localizationKey))) · \(Int(temp.rounded()))°")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    if let location = entry.weatherLocation {
+                        Text("· \(location)")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
         }
     }
 

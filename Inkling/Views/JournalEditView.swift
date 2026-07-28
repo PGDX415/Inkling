@@ -20,6 +20,8 @@ struct JournalEditView: View {
     @State private var fullScreenPhoto: JournalPhoto?
     @State private var isPolishing = false
     @State private var polishError: String?
+    @State private var weatherData: WeatherData?
+    @State private var isFetchingWeather = false
 
     @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.deepseek.rawValue
     @AppStorage("aiApiKey_deepseek") private var deepseekKey = ""
@@ -160,6 +162,19 @@ struct JournalEditView: View {
             entryPhotos = entry.photos?.sorted(by: { $0.sortOrder < $1.sortOrder }) ?? []
             try? await Task.sleep(for: .seconds(0.5))
             isFocused = true
+
+            // Fetch weather for new entries that don't already have weather data
+            if isNewEntry && entry.weatherCondition == nil {
+                isFetchingWeather = true
+                weatherData = await WeatherManager.shared.fetchWeather()
+                if let weather = weatherData {
+                    entry.weatherCondition = weather.condition.rawValue
+                    entry.temperature = weather.temperature
+                    entry.weatherLocation = weather.location
+                    try? modelContext.save()
+                }
+                isFetchingWeather = false
+            }
         }
         .onChange(of: selectedPhotos) { _, items in
             guard !items.isEmpty else { return }
@@ -238,26 +253,51 @@ struct JournalEditView: View {
     }
 
     private var datePickerRow: some View {
-        HStack {
-            Image(systemName: "calendar")
-                .foregroundStyle(.brown)
-                .font(.subheadline)
+        VStack(spacing: 8) {
+            HStack {
+                Image(systemName: "calendar")
+                    .foregroundStyle(.brown)
+                    .font(.subheadline)
 
-            DatePicker("", selection: $entryDate, displayedComponents: [.date, .hourAndMinute])
-                .labelsHidden()
-                .onChange(of: entryDate) { _, newDate in
-                    entry.createdAt = newDate
-                    entry.modifiedAt = Date()
-                    scheduleAutoSave()
+                DatePicker("", selection: $entryDate, displayedComponents: [.date, .hourAndMinute])
+                    .labelsHidden()
+                    .onChange(of: entryDate) { _, newDate in
+                        entry.createdAt = newDate
+                        entry.modifiedAt = Date()
+                        scheduleAutoSave()
+                    }
+
+                Spacer()
+
+                Text(wordCount > 0
+                     ? String(format: String(localized: "journal.word_count"), wordCount)
+                     : "")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            // Weather indicator
+            if isFetchingWeather {
+                HStack(spacing: 6) {
+                    ProgressView()
+                        .scaleEffect(0.6)
+                    Text("Fetching weather...")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-
-            Spacer()
-
-            Text(wordCount > 0
-                 ? String(format: String(localized: "journal.word_count"), wordCount)
-                 : "")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            } else if let weather = weatherData {
+                HStack(spacing: 6) {
+                    Image(systemName: weather.condition.symbolName)
+                        .foregroundStyle(.brown)
+                        .font(.caption)
+                    Text("\(String(localized: String.LocalizationValue(weather.condition.localizationKey))) · \(Int(weather.temperature.rounded()))°")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text("· \(weather.location)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)

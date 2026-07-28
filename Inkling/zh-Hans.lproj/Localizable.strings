@@ -117,6 +117,18 @@
 "voice.unavailable" = "没有可用的中文语音";
 "voice.female" = "女声";
 "voice.male" = "男声";
+
+/* Weather */
+"weather.sunny" = "晴";
+"weather.cloudy" = "多云";
+"weather.overcast" = "阴";
+"weather.fog" = "雾";
+"weather.drizzle" = "毛毛雨";
+"weather.rain" = "雨";
+"weather.heavy_rain" = "大雨";
+"weather.snow" = "雪";
+"weather.thunderstorm" = "雷阵雨";
+
 "font.songti" = "宋体";
 "font.songti_desc" = "古典衬线，温润雅致";
 "font.kaiti" = "楷体";

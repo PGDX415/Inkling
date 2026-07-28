@@ -7,7 +7,7 @@ struct JournalRowView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            // Date & Time
+            // Date & Time + Weather
             HStack {
                 HStack(spacing: 4) {
                     Text(DateFormatter.journalShortDate.string(from: entry.createdAt))
@@ -28,6 +28,21 @@ struct JournalRowView: View {
                     Text(DateFormatter.weekdayShort.string(from: entry.createdAt))
                         .font(.subheadline)
                         .foregroundStyle(.brown)
+
+                    // Weather
+                    if let conditionRaw = entry.weatherCondition,
+                       let condition = WeatherCondition(rawValue: conditionRaw),
+                       let temp = entry.temperature {
+                        Text("·")
+                            .foregroundStyle(.secondary)
+                        HStack(spacing: 2) {
+                            Image(systemName: condition.symbolName)
+                                .font(.caption2)
+                            Text("\(Int(temp.rounded()))°")
+                                .font(.caption2)
+                        }
+                        .foregroundStyle(.brown.opacity(0.7))
+                    }
                 }
 
                 Spacer()

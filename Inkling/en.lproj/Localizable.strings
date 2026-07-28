@@ -117,6 +117,18 @@
 "voice.unavailable" = "No Chinese voices available";
 "voice.female" = "Female";
 "voice.male" = "Male";
+
+/* Weather */
+"weather.sunny" = "Sunny";
+"weather.cloudy" = "Cloudy";
+"weather.overcast" = "Overcast";
+"weather.fog" = "Foggy";
+"weather.drizzle" = "Drizzle";
+"weather.rain" = "Rain";
+"weather.heavy_rain" = "Heavy Rain";
+"weather.snow" = "Snow";
+"weather.thunderstorm" = "Thunderstorm";
+
 "font.songti" = "Songti";
 "font.songti_desc" = "Elegant serif, warm and classic";
 "font.kaiti" = "Kaiti";
