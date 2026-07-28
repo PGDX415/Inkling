@@ -25,6 +25,25 @@ struct CalendarView: View {
         return dates
     }
 
+    /// Number of entries per day
+    private var entryCounts: [Date: Int] {
+        var counts: [Date: Int] = [:]
+        for entry in allEntries {
+            let components = calendar.dateComponents([.year, .month, .day], from: entry.createdAt)
+            if let date = calendar.date(from: components) {
+                counts[date, default: 0] += 1
+            }
+        }
+        return counts
+    }
+
+    /// Total entries in the current month
+    private var currentMonthEntryCount: Int {
+        allEntries.filter {
+            calendar.isDate($0.createdAt, equalTo: currentMonth, toGranularity: .month)
+        }.count
+    }
+
     /// Entries for the currently selected date
     private var entriesForSelectedDate: [JournalEntry] {
         guard let selectedDate else { return [] }
@@ -44,6 +63,12 @@ struct CalendarView: View {
 
                 // Calendar grid
                 calendarGrid
+
+                // Heatmap legend
+                heatmapLegend
+
+                // Month stats
+                monthStats
 
                 Divider()
                     .padding(.vertical, 8)
@@ -133,9 +158,10 @@ struct CalendarView: View {
         let days = calendar.daysInMonth(for: currentMonth)
 
         return LazyVGrid(columns: columns, spacing: 4) {
-            ForEach(Array(days.enumerated()), id: \.offset) { index, date in
+            ForEach(Array(days.enumerated()), id: \.offset) { _, date in
                 let isCurrentMonth = calendar.isDate(date, equalTo: currentMonth, toGranularity: .month)
-                let hasEntry = entryDates.contains(where: { calendar.isDate($0, inSameDayAs: date) })
+                let count = entryCounts[date] ?? 0
+                let hasEntry = count > 0
                 let isSelected = selectedDate != nil && calendar.isDate(date, inSameDayAs: selectedDate!)
                 let isToday = calendar.isDateInToday(date)
 
@@ -155,25 +181,30 @@ struct CalendarView: View {
                             .foregroundStyle(dayColor(
                                 isCurrentMonth: isCurrentMonth,
                                 isToday: isToday,
-                                isSelected: isSelected
+                                isSelected: isSelected,
+                                hasEntry: hasEntry
                             ))
 
-                        // Entry indicator dot
+                        // Entry count indicator
                         if hasEntry && isCurrentMonth {
-                            Circle()
-                                .fill(Color.brown.opacity(isSelected ? 1 : 0.6))
-                                .frame(width: 5, height: 5)
+                            Text("\(count)")
+                                .font(.system(size: 9))
+                                .foregroundStyle(dayColor(
+                                    isCurrentMonth: isCurrentMonth,
+                                    isToday: isToday,
+                                    isSelected: isSelected,
+                                    hasEntry: true
+                                ))
                         } else {
-                            Circle()
-                                .fill(Color.clear)
-                                .frame(width: 5, height: 5)
+                            Text(" ")
+                                .font(.system(size: 9))
                         }
                     }
-                    .frame(height: 40)
+                    .frame(height: 44)
                     .frame(maxWidth: .infinity)
                     .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(isSelected ? Color.brown.opacity(0.12) : Color.clear)
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(cellBackground(isCurrentMonth: isCurrentMonth, count: count, isSelected: isSelected))
                     )
                 }
                 .buttonStyle(.plain)
@@ -182,7 +213,20 @@ struct CalendarView: View {
         .padding(.horizontal, 12)
     }
 
-    private func dayColor(isCurrentMonth: Bool, isToday: Bool, isSelected: Bool) -> Color {
+    /// Heatmap color based on entry count
+    private func cellBackground(isCurrentMonth: Bool, count: Int, isSelected: Bool) -> Color {
+        if isSelected { return Color.brown.opacity(0.2) }
+        if !isCurrentMonth { return Color.clear }
+        switch count {
+        case 0: return Color.brown.opacity(0.04)
+        case 1: return Color.brown.opacity(0.15)
+        case 2: return Color.brown.opacity(0.3)
+        case 3: return Color.brown.opacity(0.45)
+        default: return Color.brown.opacity(0.6)
+        }
+    }
+
+    private func dayColor(isCurrentMonth: Bool, isToday: Bool, isSelected: Bool, hasEntry: Bool) -> Color {
         if !isCurrentMonth {
             return .clear
         }
@@ -192,7 +236,42 @@ struct CalendarView: View {
         if isSelected {
             return .brown
         }
-        return .primary
+        return hasEntry ? .primary : .secondary
+    }
+
+    // MARK: - Heatmap Legend
+    private var heatmapLegend: some View {
+        HStack(spacing: 12) {
+            Text("calendar.less")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            ForEach([0, 1, 2, 3, 4], id: \.self) { level in
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(cellBackground(isCurrentMonth: true, count: level, isSelected: false))
+                    .frame(width: 14, height: 14)
+            }
+            Text("calendar.more")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 4)
+    }
+
+    // MARK: - Month Stats
+    private var monthStats: some View {
+        HStack(spacing: 16) {
+            Label("\(currentMonthEntryCount) \(String(localized: "calendar.entries_count_simple"))", systemImage: "book.pages")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            let activeDays = entryCounts.filter { date, count in
+                calendar.isDate(date, equalTo: currentMonth, toGranularity: .month) && count > 0
+            }.count
+            Label(String(format: String(localized: "calendar.days"), activeDays), systemImage: "calendar")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 4)
     }
 
     // MARK: - Selected Date Entries

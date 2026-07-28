@@ -99,6 +99,10 @@
 "calendar.title" = "时光之历";
 "calendar.no_entries" = "此日无记录";
 "calendar.entries_count" = "%d 篇日记";
+"calendar.less" = "少";
+"calendar.more" = "多";
+"calendar.days" = "%d 天";
+"calendar.entries_count_simple" = "篇";
 
 /* Content Placeholder */
 /* Photos */

@@ -99,6 +99,10 @@
 "calendar.title" = "Calendar";
 "calendar.no_entries" = "No entries for this day";
 "calendar.entries_count" = "%d entries";
+"calendar.less" = "Less";
+"calendar.more" = "More";
+"calendar.days" = "%d days";
+"calendar.entries_count_simple" = "entries";
 
 /* Content Placeholder */
 /* Photos */
