@@ -180,8 +180,17 @@ struct JournalEditView: View {
             try? await Task.sleep(for: .seconds(0.5))
             isFocused = true
 
-            // Fetch weather for new entries that don't already have weather data
-            if isNewEntry && entry.weatherCondition == nil {
+            // Weather: only for today's entries
+            let isToday = Calendar.current.isDate(entryDate, inSameDayAs: Date())
+            if !isToday && entry.weatherCondition != nil {
+                // Clear stale weather from non-today entries
+                entry.weatherCondition = nil
+                entry.temperature = nil
+                entry.weatherLocation = nil
+                weatherData = nil
+                try? modelContext.save()
+            } else if isNewEntry && isToday && entry.weatherCondition == nil {
+                // Fetch weather for today's new entries
                 isFetchingWeather = true
                 weatherData = await WeatherManager.shared.fetchWeather()
                 if let weather = weatherData {
@@ -281,6 +290,13 @@ struct JournalEditView: View {
                     .onChange(of: entryDate) { _, newDate in
                         entry.createdAt = newDate
                         entry.modifiedAt = Date()
+                        // Clear weather if date is not today
+                        if !Calendar.current.isDate(newDate, inSameDayAs: Date()) {
+                            entry.weatherCondition = nil
+                            entry.temperature = nil
+                            entry.weatherLocation = nil
+                            weatherData = nil
+                        }
                         scheduleAutoSave()
                     }
 
