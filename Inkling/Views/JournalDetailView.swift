@@ -20,6 +20,9 @@ struct JournalDetailView: View {
     @State private var polishError: String?
     @State private var fullScreenPhoto: JournalPhoto?
     @State private var speechManager = SpeechManager.shared
+    @State private var shareCardImage: UIImage?
+    @State private var showSharePreview = false
+    @State private var triggerShare = false
 
     let entry: JournalEntry
 
@@ -85,6 +88,16 @@ struct JournalDetailView: View {
 
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 16) {
+                    // Share card button
+                    if !entry.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Button {
+                            renderAndShare()
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                        .tint(.brown)
+                    }
+
                     // AI Polish button
                     if !currentProviderKey.isEmpty && !entry.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         Button {
@@ -144,6 +157,17 @@ struct JournalDetailView: View {
         .sheet(isPresented: $isEditing) {
             NavigationStack {
                 JournalEditView(entry: entry)
+            }
+        }
+        .sheet(isPresented: $showSharePreview) {
+            if let image = shareCardImage {
+                NavigationStack {
+                    SharePreviewView(
+                        image: image,
+                        triggerShare: $triggerShare,
+                        onDismiss: { showSharePreview = false }
+                    )
+                }
             }
         }
     }
@@ -222,14 +246,22 @@ struct JournalDetailView: View {
     }
 
     private var contentView: some View {
-        Text(entry.content.isEmpty
-             ? String(localized: "journal.empty_content")
-             : entry.content
-        )
-        .font(journalFont)
-        .lineSpacing(8)
-        .foregroundStyle(entry.content.isEmpty ? .tertiary : .primary)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        let trimmed = entry.content.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            return AnyView(
+                Text("journal.empty_content")
+                    .font(journalFont)
+                    .lineSpacing(8)
+                    .foregroundStyle(.tertiary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            )
+        } else {
+            return AnyView(
+                Text(MarkdownRenderer.render(entry.content, baseFont: journalFont))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 4)
+            )
+        }
     }
 
     private func photoGallery(photos: [JournalPhoto]) -> some View {
@@ -317,6 +349,21 @@ struct JournalDetailView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Share Card
+    private func renderAndShare() {
+        let card = ShareCardView(entry: entry)
+        let renderer = ImageRenderer(content: card)
+        renderer.proposedSize = ProposedViewSize(width: 390, height: nil)
+        renderer.scale = UIScreen.main.scale
+        shareCardImage = renderer.uiImage
+        showSharePreview = true
+    }
+
+    private func doShare() {
+        guard shareCardImage != nil else { return }
+        triggerShare = true
     }
 
     // MARK: - Actions

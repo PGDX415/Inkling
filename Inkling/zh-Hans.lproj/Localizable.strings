@@ -6,6 +6,7 @@
 
 /* Tab Bar */
 "tab.journal" = "日记";
+"tab.stats" = "统计";
 "tab.calendar" = "时光之历";
 "tab.settings" = "设置";
 
@@ -46,6 +47,7 @@
 "settings.ai_provider" = "服务商";
 "settings.ai_api_key" = "API 密钥";
 "settings.ai_api_key_placeholder" = "输入你的 API 密钥";
+"settings.ai_key_not_set" = "未设置";
 "journal.polish" = "润色";
 "journal.polishing" = "正在润色...";
 
@@ -164,7 +166,35 @@
 "font.pingfang" = "苹方";
 "font.pingfang_desc" = "现代无衬线，简洁清爽";
 
+"editor.preview_mode" = "预览模式";
 "editor.placeholder" = "今天想写些什么？";
+
+/* Stats */
+"stats.title" = "写作统计";
+"stats.empty" = "尚无日记，开始书写时光吧";
+"stats.total_entries" = "总篇数";
+"stats.total_words" = "总字数";
+"stats.current_streak" = "连续天数";
+"stats.longest_streak" = "最长连续";
+"stats.avg_words" = "篇均字数";
+"stats.active_days_month" = "本月书写";
+"stats.monthly_entries" = "月度书写";
+"stats.no_data" = "暂无数据";
+"stats.mood_distribution" = "心情分布";
+"stats.no_mood_data" = "还未记录过心情";
+"stats.tag_distribution" = "标签使用";
+"stats.no_tag_data" = "还未使用过标签";
+"stats.time_distribution" = "书写时段";
+"stats.time_morning" = "上午";
+"stats.time_afternoon" = "下午";
+"stats.time_evening" = "傍晚";
+"stats.time_night" = "深夜";
+
+/* Share */
+"share.made_with" = "拾光 · Inkling";
+"share.preview_title" = "分享卡片";
+"share.preview_hint" = "预览卡片，满意后点击分享";
+"share.button" = "分享";
 
 /* Trash */
 "trash.title" = "回收站";

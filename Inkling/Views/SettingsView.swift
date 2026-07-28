@@ -32,6 +32,7 @@ struct SettingsView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var previewingVoice: String?
     @State private var availableVoices: [(language: String, voices: [AVSpeechSynthesisVoice])] = []
+    @State private var isApiKeyExpanded = false
 
     private let speechRateRange: ClosedRange<Double> = 0.35...0.65
 
@@ -75,15 +76,31 @@ struct SettingsView: View {
                             Text("settings.ai_provider")
                         }
                     }
+                    .onChange(of: aiProviderRaw) { _, _ in
+                        isApiKeyExpanded = false
+                    }
 
-                    SecureField(
-                        String(localized: "settings.ai_api_key_placeholder"),
-                        text: Binding(
-                            get: { currentProviderKey },
-                            set: { setCurrentProviderKey($0) }
+                    DisclosureGroup(isExpanded: $isApiKeyExpanded) {
+                        SecureField(
+                            String(localized: "settings.ai_api_key_placeholder"),
+                            text: Binding(
+                                get: { currentProviderKey },
+                                set: { setCurrentProviderKey($0) }
+                            )
                         )
-                    )
-                    .focused($isApiKeyFocused)
+                        .focused($isApiKeyFocused)
+                        .onSubmit {
+                            isApiKeyExpanded = false
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "key")
+                                .foregroundStyle(.brown)
+                            Text("settings.ai_api_key")
+                            Spacer()
+                            keyStatusBadge
+                        }
+                    }
                 } header: {
                     Text("settings.section_ai")
                 }
@@ -407,6 +424,27 @@ struct SettingsView: View {
         case .deepseek: return deepseekKey
         case .siliconflow: return siliconflowKey
         case .gemini: return geminiKey
+        }
+    }
+
+    private var keyStatusBadge: some View {
+        if currentProviderKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return AnyView(
+                Text("settings.ai_key_not_set")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            )
+        } else {
+            return AnyView(
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark.shield.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.green)
+                    Text("••••••••")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+            )
         }
     }
 

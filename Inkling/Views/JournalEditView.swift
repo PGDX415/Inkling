@@ -25,6 +25,7 @@ struct JournalEditView: View {
     @State private var selectedMood: String? = nil
     @State private var tagInput = ""
     @State private var entryTags: [String] = []
+    @State private var isPreviewMode = false
 
     @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.deepseek.rawValue
     @AppStorage("aiApiKey_deepseek") private var deepseekKey = ""
@@ -46,6 +47,30 @@ struct JournalEditView: View {
     private var journalFont: Font {
         let style = FontStyle(rawValue: fontStyle) ?? .songti
         return style.makeFont(size: fontSize)
+    }
+
+    // MARK: - Format Options
+    private struct FormatOption: Identifiable {
+        let id = UUID()
+        let label: String
+        let insertion: String
+    }
+
+    private let formatOptions: [FormatOption] = [
+        FormatOption(label: "B", insertion: "**粗体**"),
+        FormatOption(label: "I", insertion: "*斜体*"),
+        FormatOption(label: "S", insertion: "~~删除线~~"),
+        FormatOption(label: "#", insertion: "\n# 标题"),
+        FormatOption(label: "•", insertion: "\n- 列表"),
+        FormatOption(label: "\u{00AB}", insertion: "\n> 引用"),
+        FormatOption(label: "`", insertion: "`代码`"),
+        FormatOption(label: "—", insertion: "\n---\n"),
+    ]
+
+    /// Insert markdown formatting at the end of content
+    private func insertFormat(_ option: FormatOption) {
+        content += option.insertion
+        scheduleAutoSave()
     }
 
     var body: some View {
@@ -75,29 +100,33 @@ struct JournalEditView: View {
                 .overlay(Color.brown.opacity(0.2))
 
             // Editor area
-            ZStack(alignment: .topLeading) {
-                if content.isEmpty {
-                    Text("editor.placeholder")
+            if isPreviewMode {
+                previewContent
+            } else {
+                ZStack(alignment: .topLeading) {
+                    if content.isEmpty {
+                        Text("editor.placeholder")
+                            .font(journalFont)
+                            .lineSpacing(8)
+                            .foregroundStyle(.tertiary)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 16)
+                            .allowsHitTesting(false)
+                    }
+
+                    TextEditor(text: $content)
                         .font(journalFont)
                         .lineSpacing(8)
-                        .foregroundStyle(.tertiary)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 16)
-                        .allowsHitTesting(false)
+                        .scrollContentBackground(.hidden)
+                        .background(Color("JournalBackground"))
+                        .padding(.horizontal, 16)
+                        .focused($isFocused)
+                        .onChange(of: content) { _, _ in
+                            scheduleAutoSave()
+                        }
                 }
-
-                TextEditor(text: $content)
-                    .font(journalFont)
-                    .lineSpacing(8)
-                    .scrollContentBackground(.hidden)
-                    .background(Color("JournalBackground"))
-                    .padding(.horizontal, 16)
-                    .focused($isFocused)
-                    .onChange(of: content) { _, _ in
-                        scheduleAutoSave()
-                    }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(Color("JournalBackground"))
         .navigationTitle(isNewEntry
@@ -115,53 +144,95 @@ struct JournalEditView: View {
             }
 
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button(role: .destructive) {
-                    if isDiscardable {
-                        modelContext.delete(entry)
-                    } else {
-                        saveImmediately()
+                HStack(spacing: 12) {
+                    // Preview / Edit toggle
+                    if !content.isEmpty {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                isPreviewMode.toggle()
+                                if isPreviewMode {
+                                    isFocused = false
+                                }
+                            }
+                        } label: {
+                            Image(systemName: isPreviewMode ? "pencil.circle.fill" : "eye")
+                        }
+                        .tint(.brown)
                     }
-                    onDismiss?()
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark.circle")
+
+                    Button(role: .destructive) {
+                        if isDiscardable {
+                            modelContext.delete(entry)
+                        } else {
+                            saveImmediately()
+                        }
+                        onDismiss?()
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle")
+                    }
                 }
             }
 
             ToolbarItem(placement: .keyboard) {
-                HStack {
-                    Text(String(format: String(localized: "journal.word_count"), wordCount))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    Spacer()
-
-                    // AI Polish button
-                    if !currentProviderKey.isEmpty && !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Button {
-                            polishContent()
-                        } label: {
+                VStack(spacing: 6) {
+                    // Markdown format buttons
+                    if !isPreviewMode {
+                        ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 4) {
-                                if isPolishing {
-                                    ProgressView()
-                                        .scaleEffect(0.7)
-                                } else {
-                                    Image(systemName: "sparkles")
+                                ForEach(formatOptions) { option in
+                                    Button {
+                                        insertFormat(option)
+                                    } label: {
+                                        Text(option.label)
+                                            .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                                            .foregroundStyle(.brown)
+                                            .frame(minWidth: 30, minHeight: 28)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 5)
+                                                    .fill(Color.brown.opacity(0.08))
+                                            )
+                                    }
                                 }
-                                Text(isPolishing
-                                     ? String(localized: "journal.polishing")
-                                     : String(localized: "journal.polish"))
-                                    .font(.caption)
                             }
+                            .padding(.horizontal, 2)
                         }
-                        .disabled(isPolishing)
-                        .tint(.brown)
                     }
 
-                    Button(String(localized: "common.done")) {
-                        isFocused = false
+                    HStack {
+                        Text(String(format: String(localized: "journal.word_count"), wordCount))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Spacer()
+
+                        // AI Polish button
+                        if !currentProviderKey.isEmpty && !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Button {
+                                polishContent()
+                            } label: {
+                                HStack(spacing: 4) {
+                                    if isPolishing {
+                                        ProgressView()
+                                            .scaleEffect(0.7)
+                                    } else {
+                                        Image(systemName: "sparkles")
+                                    }
+                                    Text(isPolishing
+                                         ? String(localized: "journal.polishing")
+                                         : String(localized: "journal.polish"))
+                                        .font(.caption)
+                                }
+                            }
+                            .disabled(isPolishing)
+                            .tint(.brown)
+                        }
+
+                        Button(String(localized: "common.done")) {
+                            isFocused = false
+                        }
+                        .fontWeight(.medium)
                     }
-                    .fontWeight(.medium)
                 }
             }
         }
@@ -447,6 +518,52 @@ struct JournalEditView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
         }
+    }
+
+    // MARK: - Preview Content
+    private var previewContent: some View {
+        VStack(spacing: 0) {
+            // Preview mode indicator
+            HStack {
+                Image(systemName: "eye")
+                    .font(.caption)
+                Text("editor.preview_mode")
+                    .font(.caption)
+                Spacer()
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isPreviewMode = false
+                        isFocused = true
+                    }
+                } label: {
+                    Label(String(localized: "journal.edit"), systemImage: "pencil")
+                        .font(.caption)
+                }
+                .tint(.brown)
+            }
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 8)
+
+            Divider()
+                .overlay(Color.brown.opacity(0.15))
+
+            ScrollView {
+                if content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text("editor.placeholder")
+                        .font(journalFont)
+                        .foregroundStyle(.tertiary)
+                        .padding(24)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    Text(MarkdownRenderer.render(content, baseFont: journalFont))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(24)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color("JournalBackground"))
     }
 
     // MARK: - Computed properties

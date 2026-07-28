@@ -36,4 +36,8 @@ enum MoodType: String, CaseIterable {
         case .thoughtful: return "mood.thoughtful"
         }
     }
+
+    var localizedName: String {
+        String(localized: String.LocalizationValue(localizationKey))
+    }
 }

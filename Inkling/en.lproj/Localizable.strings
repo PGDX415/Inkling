@@ -6,6 +6,7 @@
 
 /* Tab Bar */
 "tab.journal" = "Journal";
+"tab.stats" = "Stats";
 "tab.calendar" = "Calendar";
 "tab.settings" = "Settings";
 
@@ -46,6 +47,7 @@
 "settings.ai_provider" = "Provider";
 "settings.ai_api_key" = "API Key";
 "settings.ai_api_key_placeholder" = "Enter your API key";
+"settings.ai_key_not_set" = "Not set";
 "journal.polish" = "Polish";
 "journal.polishing" = "Polishing...";
 
@@ -164,7 +166,35 @@
 "font.pingfang" = "PingFang";
 "font.pingfang_desc" = "Modern sans-serif, clean and crisp";
 
+"editor.preview_mode" = "Preview";
 "editor.placeholder" = "What's on your mind today?";
+
+/* Stats */
+"stats.title" = "Writing Stats";
+"stats.empty" = "No entries yet. Start writing!";
+"stats.total_entries" = "Entries";
+"stats.total_words" = "Words";
+"stats.current_streak" = "Streak";
+"stats.longest_streak" = "Best Streak";
+"stats.avg_words" = "Avg Words";
+"stats.active_days_month" = "Days This Month";
+"stats.monthly_entries" = "Monthly Entries";
+"stats.no_data" = "No data yet";
+"stats.mood_distribution" = "Mood Distribution";
+"stats.no_mood_data" = "No moods recorded yet";
+"stats.tag_distribution" = "Tags Used";
+"stats.no_tag_data" = "No tags used yet";
+"stats.time_distribution" = "Writing Time";
+"stats.time_morning" = "Morning";
+"stats.time_afternoon" = "Afternoon";
+"stats.time_evening" = "Evening";
+"stats.time_night" = "Night";
+
+/* Share */
+"share.made_with" = "Inkling";
+"share.preview_title" = "Share Card";
+"share.preview_hint" = "Preview your card, then share";
+"share.button" = "Share";
 
 /* Trash */
 "trash.title" = "Trash";

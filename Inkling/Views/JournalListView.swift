@@ -183,6 +183,11 @@ struct JournalListView: View {
             if let initialTag, selectedTag == nil {
                 selectedTag = initialTag
             }
+            updateWidgetData()
+        }
+        // Update widget when entries change
+        .onChange(of: entries.count) { _, _ in
+            updateWidgetData()
         }
     }
 
@@ -455,6 +460,16 @@ struct JournalListView: View {
                 .font(.caption)
                 .foregroundStyle(.brown.opacity(0.6))
         }
+    }
+
+    // MARK: - Widget
+    private func updateWidgetData() {
+        let streak = JournalEntry.streak(from: entries)
+        let today = Calendar.current.startOfDay(for: Date())
+        let hasWritten = entries.contains {
+            Calendar.current.isDate($0.createdAt, inSameDayAs: today)
+        }
+        WidgetDataManager.update(streak: streak, hasWrittenToday: hasWritten, prompt: DailyQuote.today())
     }
 
     // MARK: - Actions
