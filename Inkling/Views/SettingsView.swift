@@ -182,48 +182,45 @@ struct SettingsView: View {
 
                 // MARK: - Font Section
                 Section {
-                    VStack(spacing: 16) {
+                    DisclosureGroup {
                         // Font style selector
-                        VStack(spacing: 8) {
-                            ForEach(FontStyle.allCases, id: \.rawValue) { style in
-                                Button {
-                                    fontStyle = style.rawValue
-                                } label: {
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(style.displayName)
-                                                .font(.subheadline)
-                                                .foregroundStyle(.primary)
-                                            Text(style.description)
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                        Spacer()
-                                        if fontStyle == style.rawValue {
-                                            Image(systemName: "checkmark")
-                                                .foregroundStyle(.brown)
-                                                .fontWeight(.medium)
-                                        }
+                        ForEach(FontStyle.allCases, id: \.rawValue) { style in
+                            Button {
+                                fontStyle = style.rawValue
+                            } label: {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(style.displayName)
+                                            .font(.subheadline)
+                                            .foregroundStyle(.primary)
+                                        Text(style.description)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
                                     }
-                                    .padding(.vertical, 4)
+                                    Spacer()
+                                    if fontStyle == style.rawValue {
+                                        Image(systemName: "checkmark")
+                                            .foregroundStyle(.brown)
+                                            .fontWeight(.medium)
+                                    }
                                 }
-                                .buttonStyle(.plain)
-
-                                // Font preview
-                                Text(style.sampleText)
-                                    .font(.custom(style.fontName, size: 16))
-                                    .lineSpacing(6)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(12)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .fill(Color("JournalBackground"))
-                                    )
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(Color.brown.opacity(0.15), lineWidth: 1)
-                                    )
                             }
+                            .buttonStyle(.plain)
+
+                            // Font preview
+                            Text(style.sampleText)
+                                .font(style.makeFont(size: 16))
+                                .lineSpacing(6)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color("JournalBackground"))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.brown.opacity(0.15), lineWidth: 1)
+                                )
                         }
 
                         Divider()
@@ -253,10 +250,19 @@ struct SettingsView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
+                    } label: {
+                        HStack {
+                            Image(systemName: "textformat")
+                                .foregroundStyle(.brown)
+                            Text("settings.section_font")
+                                .fontWeight(.medium)
+                            Spacer()
+                            // Show current font name as subtitle
+                            Text(FontStyle(rawValue: fontStyle)?.displayName ?? "Songti")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
-                    .padding(.vertical, 8)
-                } header: {
-                    Text("settings.section_font")
                 }
 
                 // MARK: - Voice Section

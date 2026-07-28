@@ -22,13 +22,36 @@ enum FontStyle: String, CaseIterable {
         }
     }
 
-    /// Primary font name for journal text
-    var fontName: String {
+    /// Try multiple possible PostScript names to find the correct font
+    private var candidateNames: [String] {
         switch self {
-        case .songti: return "Songti SC"
-        case .kaiti: return "Kaiti SC"
-        case .pingfang: return "PingFang SC"
+        case .songti:
+            return ["STSongti-SC-Regular", "Songti SC", "STSongti-SC", "SongtiSC-Regular"]
+        case .kaiti:
+            return ["STKaitiSC-Regular", "Kaiti SC", "STKaiti-SC-Regular", "KaitiSC-Regular"]
+        case .pingfang:
+            return ["PingFangSC-Regular", "PingFang SC", "PingFangSC", "PingFang-HK-Regular"]
         }
+    }
+
+    /// Get the first available font name, fallback to system serif
+    private var resolvedFontName: String {
+        for name in candidateNames {
+            if let _ = UIFont(name: name, size: 12) {
+                return name
+            }
+        }
+        // Ultimate fallback
+        switch self {
+        case .songti: return "Times New Roman"
+        case .kaiti: return "Georgia"
+        case .pingfang: return "Helvetica"
+        }
+    }
+
+    /// Create a Font with the given size, auto-resolving the correct PostScript name
+    func makeFont(size: Double) -> Font {
+        .custom(resolvedFontName, size: size)
     }
 
     /// Preview sample for settings UI
@@ -47,10 +70,10 @@ struct FontSettings {
     }
 
     static func journalFont() -> Font {
-        .custom(currentStyle.fontName, size: fontSize)
+        currentStyle.makeFont(size: fontSize)
     }
 
     static func journalFont(size: Double) -> Font {
-        .custom(currentStyle.fontName, size: size)
+        currentStyle.makeFont(size: size)
     }
 }

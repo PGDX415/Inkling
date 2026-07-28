@@ -320,7 +320,7 @@ struct JournalListView: View {
             }
 
             Text(quote)
-                .font(.custom(FontStyle(rawValue: fontStyle)?.fontName ?? FontStyle.songti.fontName, size: 15))
+                .font((FontStyle(rawValue: fontStyle) ?? .songti).makeFont(size: 15))
                 .foregroundStyle(.secondary)
                 .lineSpacing(6)
                 .fixedSize(horizontal: false, vertical: true)

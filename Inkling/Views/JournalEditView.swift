@@ -43,7 +43,7 @@ struct JournalEditView: View {
     /// Compute journal font from saved settings
     private var journalFont: Font {
         let style = FontStyle(rawValue: fontStyle) ?? .songti
-        return .custom(style.fontName, size: fontSize)
+        return style.makeFont(size: fontSize)
     }
 
     var body: some View {
