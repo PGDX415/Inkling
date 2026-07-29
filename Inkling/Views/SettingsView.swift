@@ -9,10 +9,8 @@ struct SettingsView: View {
     @AppStorage("isLockEnabled") private var isLockEnabled = false
     @AppStorage("sortOrder") private var sortOrder = SortOrder.newestFirst.rawValue
     @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.deepseek.rawValue
-    @AppStorage("aiApiKey_deepseek") private var deepseekKey = ""
-    @AppStorage("aiApiKey_siliconflow") private var siliconflowKey = ""
-    @AppStorage("aiApiKey_gemini") private var geminiKey = ""
     @AppStorage("fontStyle") private var fontStyle = FontStyle.songti.rawValue
+    @State private var apiKeyInput = ""
     @AppStorage("fontSize") private var fontSize: Double = 18.0
     @AppStorage("displayMode") private var displayMode = DisplayMode.system.rawValue
     @AppStorage("voiceIdentifier") private var voiceIdentifier = ""
@@ -22,6 +20,9 @@ struct SettingsView: View {
     @AppStorage("reminderMinute") private var reminderMinute = 0
     @Query private var profiles: [UserProfile]
     @Environment(\.modelContext) private var modelContext
+    @Environment(SyncMonitor.self) private var syncMonitor
+    @Environment(StoreManager.self) private var store
+    @State private var showPaywall = false
     @State private var resolvedProfile: UserProfile?
     @FocusState private var isApiKeyFocused: Bool
     @State private var showExportAlert = false
@@ -78,17 +79,18 @@ struct SettingsView: View {
                     }
                     .onChange(of: aiProviderRaw) { _, _ in
                         isApiKeyExpanded = false
+                        apiKeyInput = KeychainManager.shared.load(key: currentProvider)
                     }
 
                     DisclosureGroup(isExpanded: $isApiKeyExpanded) {
                         SecureField(
                             String(localized: "settings.ai_api_key_placeholder"),
-                            text: Binding(
-                                get: { currentProviderKey },
-                                set: { setCurrentProviderKey($0) }
-                            )
+                            text: $apiKeyInput
                         )
                         .focused($isApiKeyFocused)
+                        .onChange(of: apiKeyInput) { _, _ in
+                            persistKey()
+                        }
                         .onSubmit {
                             isApiKeyExpanded = false
                         }
@@ -103,6 +105,56 @@ struct SettingsView: View {
                     }
                 } header: {
                     Text("settings.section_ai")
+                }
+
+                // MARK: - Pro Section
+                Section {
+                    if store.isPro {
+                        HStack {
+                            Image(systemName: "crown.fill")
+                                .foregroundStyle(.yellow)
+                            Text("settings.pro_active")
+                                .fontWeight(.medium)
+                            Spacer()
+                        }
+                        .padding(.vertical, 4)
+
+                        Button {
+                            Task {
+                                if let url = URL(string: "itms-apps://apps.apple.com/account/subscriptions") {
+                                    await MainActor.run { UIApplication.shared.open(url) }
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Image(systemName: "creditcard")
+                                    .foregroundStyle(.brown)
+                                Text("store.manage_subscription")
+                            }
+                        }
+                    } else {
+                        Button {
+                            showPaywall = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "crown")
+                                    .foregroundStyle(.brown)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("settings.pro_upgrade")
+                                        .fontWeight(.medium)
+                                    Text("store.pro_subtitle")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("settings.section_pro")
                 }
 
                 // MARK: - Security Section
@@ -288,6 +340,18 @@ struct SettingsView: View {
                 // MARK: - Data Section
                 Section {
                     NavigationLink {
+                        StatsView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "chart.bar.fill")
+                                .foregroundStyle(.brown)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("tab.stats")
+                            }
+                        }
+                    }
+
+                    NavigationLink {
                         TrashView()
                     } label: {
                         HStack {
@@ -352,6 +416,18 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                     }
 
+                    HStack {
+                        Image(systemName: syncStatusIcon)
+                            .foregroundStyle(syncStatusColor)
+                            .font(.caption)
+                        Text("settings.syncing")
+                            .font(.subheadline)
+                        Spacer()
+                        Text(syncStatusText)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
                     NavigationLink {
                         HelpView()
                     } label: {
@@ -404,6 +480,12 @@ struct SettingsView: View {
                 guard let newItem else { return }
                 loadPhoto(from: newItem)
             }
+            .onAppear {
+                apiKeyInput = KeychainManager.shared.load(key: currentProvider)
+            }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+            }
         }
         .tabItem {
             Label {
@@ -420,11 +502,11 @@ struct SettingsView: View {
     }
 
     private var currentProviderKey: String {
-        switch currentProvider {
-        case .deepseek: return deepseekKey
-        case .siliconflow: return siliconflowKey
-        case .gemini: return geminiKey
-        }
+        KeychainManager.shared.load(key: currentProvider)
+    }
+
+    private func persistKey() {
+        KeychainManager.shared.save(key: currentProvider, value: apiKeyInput)
     }
 
     private var keyStatusBadge: some View {
@@ -448,11 +530,36 @@ struct SettingsView: View {
         }
     }
 
-    private func setCurrentProviderKey(_ value: String) {
-        switch currentProvider {
-        case .deepseek: deepseekKey = value
-        case .siliconflow: siliconflowKey = value
-        case .gemini: geminiKey = value
+    // MARK: - Sync Status
+    private var syncStatusIcon: String {
+        switch syncMonitor.status {
+        case .upToDate, .imported, .exported: return "icloud.fill"
+        case .syncing: return "icloud.and.arrow.up"
+        case .error: return "icloud.slash"
+        }
+    }
+
+    private var syncStatusColor: Color {
+        switch syncMonitor.status {
+        case .upToDate, .imported, .exported: return .green
+        case .syncing: return .brown
+        case .error: return .red
+        }
+    }
+
+    private var syncStatusText: String {
+        switch syncMonitor.status {
+        case .upToDate:
+            return String(localized: "sync.status_uptodate")
+        case .syncing:
+            return String(localized: "sync.status_syncing")
+        case .imported(let date):
+            let formatter = RelativeDateTimeFormatter()
+            return String(format: String(localized: "sync.status_imported"), formatter.localizedString(for: date, relativeTo: Date()))
+        case .exported:
+            return String(localized: "sync.status_exported")
+        case .error:
+            return String(localized: "sync.status_error")
         }
     }
 
@@ -604,7 +711,7 @@ struct SettingsView: View {
             previewingVoice = voice.identifier
             SpeechManager.shared.preview(
                 voice: voice,
-                sample: "春眠不觉晓，处处闻啼鸟"
+                sample: String(localized: "voice.sample_text")
             )
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 if previewingVoice == voice.identifier { previewingVoice = nil }

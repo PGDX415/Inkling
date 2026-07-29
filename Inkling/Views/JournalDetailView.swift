@@ -9,9 +9,6 @@ struct JournalDetailView: View {
     @AppStorage("fontStyle") private var fontStyle = FontStyle.songti.rawValue
     @AppStorage("fontSize") private var fontSize: Double = 18.0
     @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.deepseek.rawValue
-    @AppStorage("aiApiKey_deepseek") private var deepseekKey = ""
-    @AppStorage("aiApiKey_siliconflow") private var siliconflowKey = ""
-    @AppStorage("aiApiKey_gemini") private var geminiKey = ""
     @AppStorage("voiceIdentifier") private var voiceIdentifier = ""
     @AppStorage("speechRate") private var speechRate: Double = 0.5
     @State private var showDeleteAlert = false
@@ -72,6 +69,9 @@ struct JournalDetailView: View {
                         Image(systemName: entry.isBookmarked ? "bookmark.fill" : "bookmark")
                     }
                     .tint(.brown)
+                    .accessibilityLabel(entry.isBookmarked
+                        ? String(localized: "a11y.unbookmark")
+                        : String(localized: "a11y.bookmark"))
 
                     if !entry.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         Button {
@@ -82,6 +82,7 @@ struct JournalDetailView: View {
                                   : "speaker.wave.2")
                         }
                         .tint(.brown)
+                        .accessibilityLabel(String(localized: "a11y.read_aloud"))
                     }
                 }
             }
@@ -96,6 +97,7 @@ struct JournalDetailView: View {
                             Image(systemName: "square.and.arrow.up")
                         }
                         .tint(.brown)
+                        .accessibilityLabel(String(localized: "a11y.share_card"))
                     }
 
                     // AI Polish button
@@ -112,6 +114,7 @@ struct JournalDetailView: View {
                         }
                         .disabled(isPolishing)
                         .tint(.brown)
+                        .accessibilityLabel(String(localized: "journal.polish"))
                     }
 
                     Button {
@@ -126,6 +129,7 @@ struct JournalDetailView: View {
                     } label: {
                         Image(systemName: "trash")
                     }
+                    .accessibilityLabel(String(localized: "journal.delete"))
                 }
             }
         }
@@ -140,7 +144,7 @@ struct JournalDetailView: View {
         } message: {
             Text("journal.delete_message")
         }
-        .alert("AI 润色失败", isPresented: Binding(
+        .alert(String(localized: "ai.polish_error_title"), isPresented: Binding(
             get: { polishError != nil },
             set: { if !$0 { polishError = nil } }
         )) {
@@ -314,11 +318,8 @@ struct JournalDetailView: View {
 
     // MARK: - AI Polish
     private var currentProviderKey: String {
-        switch AIProvider(rawValue: aiProviderRaw) ?? .deepseek {
-        case .deepseek: return deepseekKey
-        case .siliconflow: return siliconflowKey
-        case .gemini: return geminiKey
-        }
+        let provider = AIProvider(rawValue: aiProviderRaw) ?? .deepseek
+        return KeychainManager.shared.load(key: provider)
     }
 
     private func polishContent() {

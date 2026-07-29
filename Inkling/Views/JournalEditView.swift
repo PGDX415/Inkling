@@ -28,9 +28,6 @@ struct JournalEditView: View {
     @State private var isPreviewMode = false
 
     @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.deepseek.rawValue
-    @AppStorage("aiApiKey_deepseek") private var deepseekKey = ""
-    @AppStorage("aiApiKey_siliconflow") private var siliconflowKey = ""
-    @AppStorage("aiApiKey_gemini") private var geminiKey = ""
     @AppStorage("fontStyle") private var fontStyle = FontStyle.songti.rawValue
     @AppStorage("fontSize") private var fontSize: Double = 18.0
 
@@ -51,21 +48,23 @@ struct JournalEditView: View {
 
     // MARK: - Format Options
     private struct FormatOption: Identifiable {
-        let id = UUID()
+        let id: String
         let label: String
         let insertion: String
     }
 
-    private let formatOptions: [FormatOption] = [
-        FormatOption(label: "B", insertion: "**粗体**"),
-        FormatOption(label: "I", insertion: "*斜体*"),
-        FormatOption(label: "S", insertion: "~~删除线~~"),
-        FormatOption(label: "#", insertion: "\n# 标题"),
-        FormatOption(label: "•", insertion: "\n- 列表"),
-        FormatOption(label: "\u{00AB}", insertion: "\n> 引用"),
-        FormatOption(label: "`", insertion: "`代码`"),
-        FormatOption(label: "—", insertion: "\n---\n"),
-    ]
+    private var formatOptions: [FormatOption] {
+        [
+            FormatOption(id: "bold", label: "B", insertion: "**\(String(localized: "md.placeholder_bold"))**"),
+            FormatOption(id: "italic", label: "I", insertion: "*\(String(localized: "md.placeholder_italic"))*"),
+            FormatOption(id: "strike", label: "S", insertion: "~~\(String(localized: "md.placeholder_strikethrough"))~~"),
+            FormatOption(id: "heading", label: "#", insertion: "\n# \(String(localized: "md.placeholder_heading"))"),
+            FormatOption(id: "list", label: "•", insertion: "\n- \(String(localized: "md.placeholder_list"))"),
+            FormatOption(id: "quote", label: "\u{00AB}", insertion: "\n> \(String(localized: "md.placeholder_quote"))"),
+            FormatOption(id: "code", label: "`", insertion: "`\(String(localized: "md.placeholder_code"))`"),
+            FormatOption(id: "divider", label: "—", insertion: "\n---\n"),
+        ]
+    }
 
     /// Insert markdown formatting at the end of content
     private func insertFormat(_ option: FormatOption) {
@@ -193,6 +192,7 @@ struct JournalEditView: View {
                                                     .fill(Color.brown.opacity(0.08))
                                             )
                                     }
+                                    .accessibilityLabel(option.id)
                                 }
                             }
                             .padding(.horizontal, 2)
@@ -284,7 +284,7 @@ struct JournalEditView: View {
         .fullScreenCover(item: $fullScreenPhoto) { photo in
             FullScreenPhotoView(imageData: photo.imageData)
         }
-        .alert("AI 润色失败", isPresented: Binding(
+        .alert(String(localized: "ai.polish_error_title"), isPresented: Binding(
             get: { polishError != nil },
             set: { if !$0 { polishError = nil } }
         )) {
@@ -319,6 +319,7 @@ struct JournalEditView: View {
                                     .background(Circle().fill(Color.black.opacity(0.5)))
                             }
                             .padding(4)
+                            .accessibilityLabel(String(localized: "a11y.remove_photo"))
                         }
                     }
                 }
@@ -441,6 +442,7 @@ struct JournalEditView: View {
                                         .font(.system(size: 8, weight: .bold))
                                         .foregroundStyle(.brown.opacity(0.6))
                                 }
+                                .accessibilityLabel(String(format: String(localized: "a11y.remove_tag"), tag))
                             }
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
@@ -460,7 +462,7 @@ struct JournalEditView: View {
                     .font(.caption)
                     .foregroundStyle(.brown.opacity(0.5))
 
-                TextField("添加标签...", text: $tagInput)
+                TextField(String(localized: "journal.tag_placeholder"), text: $tagInput)
                     .font(.subheadline)
                     .onSubmit {
                         addTag()
@@ -636,11 +638,8 @@ struct JournalEditView: View {
 
     // MARK: - AI Key
     private var currentProviderKey: String {
-        switch AIProvider(rawValue: aiProviderRaw) ?? .deepseek {
-        case .deepseek: return deepseekKey
-        case .siliconflow: return siliconflowKey
-        case .gemini: return geminiKey
-        }
+        let provider = AIProvider(rawValue: aiProviderRaw) ?? .deepseek
+        return KeychainManager.shared.load(key: provider)
     }
 
     // MARK: - AI Polish

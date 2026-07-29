@@ -25,7 +25,19 @@ actor AIService {
     %@
     """
 
+    // Rate limiting: minimum seconds between polish calls
+    private var lastPolishCall: Date = .distantPast
+    private let polishCooldown: TimeInterval = 8
+
     func polish(text: String, provider: AIProvider, apiKey: String) async throws -> String {
+        let now = Date()
+        let elapsed = now.timeIntervalSince(lastPolishCall)
+        if elapsed < polishCooldown {
+            let remaining = Int(polishCooldown - elapsed)
+            throw AIError.rateLimited(seconds: remaining)
+        }
+        lastPolishCall = now
+
         let prompt = String(format: polishPrompt, text)
         switch provider {
         case .deepseek:
@@ -175,6 +187,7 @@ enum AIError: LocalizedError {
     case serverError(statusCode: Int)
     case apiError(statusCode: Int, message: String)
     case noResponse
+    case rateLimited(seconds: Int)
 
     var errorDescription: String? {
         switch self {
@@ -184,6 +197,8 @@ enum AIError: LocalizedError {
             return "API error \(code): \(message)"
         case .noResponse:
             return "No response from AI"
+        case .rateLimited(let seconds):
+            return String(format: String(localized: "ai.rate_limited"), seconds)
         }
     }
 }

@@ -8,6 +8,8 @@
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
+			<key>isShown</key>
+			<true/>
 		</dict>
 		<key>InklingWidget.xcscheme_^#shared#^_</key>
 		<dict>

@@ -15,7 +15,6 @@ struct ContentView: View {
     var body: some View {
         TabView {
             JournalListView()
-            StatsView()
             CalendarView()
             SettingsView()
         }

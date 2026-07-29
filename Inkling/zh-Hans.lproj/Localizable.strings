@@ -91,6 +91,7 @@
 "common.save" = "保存";
 "common.done" = "完成";
 "common.back" = "返回";
+"common.retry" = "重试";
 
 /* Date */
 "date.today" = "今天";
@@ -245,3 +246,82 @@
 "privacy.s7_title" = "7. 联系我们";
 "privacy.s7_body" = "如果您对本隐私政策有任何疑问，请通过 GitHub Issues 与我们联系：\nhttps://github.com/PGDX415/Inkling/issues";
 "privacy.last_updated" = "最后更新日期：";
+
+/* AI Polish */
+"ai.polish_error_title" = "AI 润色失败";
+"ai.rate_limited" = "请等待 %d 秒后再次润色";
+
+/* Markdown Placeholders */
+"md.placeholder_bold" = "粗体";
+"md.placeholder_italic" = "斜体";
+"md.placeholder_strikethrough" = "删除线";
+"md.placeholder_heading" = "标题";
+"md.placeholder_list" = "列表";
+"md.placeholder_quote" = "引用";
+"md.placeholder_code" = "代码";
+
+/* Tags */
+"journal.tag_placeholder" = "添加标签...";
+
+/* Voice */
+"voice.sample_text" = "春眠不觉晓，处处闻啼鸟";
+
+/* Onboarding */
+"onboarding.skip" = "跳过";
+"onboarding.next" = "下一步";
+"onboarding.start" = "开始书写";
+"onboarding.write_title" = "一字一句，拾起时光";
+"onboarding.write_desc" = "支持 Markdown 富文本写作——粗体、斜体、标题、引用，随心所欲地表达。";
+"onboarding.ai_title" = "AI 润色";
+"onboarding.ai_desc" = "一键润色你的文字，AI 帮你优化语法和流畅度，同时保留你独有的笔触。";
+"onboarding.stats_title" = "看见成长";
+"onboarding.stats_desc" = "连续写作天数、心情分布、字数统计——让你的日记旅程清晰可见。";
+"onboarding.privacy_title" = "隐私至上";
+"onboarding.privacy_desc" = "所有数据只存在你的设备和 iCloud 中。支持面容 ID 锁定。无追踪，无广告，无第三方访问。";
+
+/* Accessibility */
+"a11y.bookmark" = "收藏";
+"a11y.unbookmark" = "取消收藏";
+"a11y.read_aloud" = "朗读";
+"a11y.share_card" = "分享卡片";
+"a11y.remove_photo" = "移除照片";
+"a11y.remove_tag" = "移除标签 %@";
+
+/* Store */
+"store.pro_title" = "拾光 Pro";
+"store.pro_subtitle" = "解锁完整的日记体验";
+"store.feature_ai_title" = "内置 AI 润色";
+"store.feature_ai_desc" = "每月 200 次润色，无需配置 API 密钥";
+"store.feature_font_title" = "高级字体";
+"store.feature_font_desc" = "手写体、圆体等更多精美字体";
+"store.feature_photo_title" = "无限照片";
+"store.feature_photo_desc" = "每篇日记可添加最多 20 张照片";
+"store.feature_sync_title" = "优先同步";
+"store.feature_sync_desc" = "更快的 iCloud 多设备同步";
+"store.feature_lock_title" = "单篇锁定";
+"store.feature_lock_desc" = "可为单篇日记单独设置 Face ID 锁定";
+"store.period_monthly" = "月度";
+"store.period_yearly" = "年度";
+"store.per_month" = "月";
+"store.per_year" = "年";
+"store.save_percent" = "省 %d%%";
+"store.trial_info" = "免费试用 7 天，随时取消";
+"store.subscribe_button" = "免费试用并订阅";
+"store.restore" = "恢复购买";
+"store.terms_prefix" = "订阅即表示你同意";
+"store.terms" = "服务条款";
+"store.privacy" = "隐私政策";
+"store.renews_on" = "下次续费 %@";
+"store.error_unverified" = "无法验证购买";
+"store.products_not_found" = "当前环境下内购不可用。\n请从 Xcode Run 并启用 StoreKit 配置文件来测试购买。";
+"store.manage_subscription" = "管理订阅";
+"settings.section_pro" = "拾光 Pro";
+"settings.pro_active" = "你已是 Pro 会员 ✨";
+"settings.pro_upgrade" = "升级到 Pro";
+
+/* Sync Status */
+"sync.status_uptodate" = "已同步";
+"sync.status_syncing" = "同步中...";
+"sync.status_imported" = "%@ 已更新";
+"sync.status_exported" = "已上传";
+"sync.status_error" = "同步出错";

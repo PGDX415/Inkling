@@ -1,0 +1,97 @@
+{
+  "identifier" : "B4E79622",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "¥6.00",
+      "familyShareable" : false,
+      "internalID" : "com.gongdexin.paul.Inkling.pro.monthly",
+      "localizations" : [
+        {
+          "description" : "AI润色、高级字体、优先同步",
+          "displayName" : "拾光 Pro (月度)",
+          "locale" : "zh-Hans"
+        },
+        {
+          "description" : "AI Polish, premium fonts, priority sync",
+          "displayName" : "Inkling Pro (Monthly)",
+          "locale" : "en"
+        }
+      ],
+      "price" : 6,
+      "referenceName" : "Pro Monthly",
+      "subscription" : {
+        "groupID" : "B8C41E1C",
+        "renewalRate" : "monthly",
+        "introductoryOffer" : {
+          "internalID" : "com.gongdexin.paul.Inkling.pro.monthly.freetrial",
+          "numberOfPeriods" : 1,
+          "paymentMode" : "freeTrial",
+          "subscriptionPeriod" : {
+            "unit" : "week",
+            "count" : 1
+          },
+          "type" : "introductory"
+        }
+      },
+      "type" : "subscription"
+    },
+    {
+      "displayPrice" : "¥48.00",
+      "familyShareable" : true,
+      "internalID" : "com.gongdexin.paul.Inkling.pro.yearly",
+      "localizations" : [
+        {
+          "description" : "AI润色、高级字体、优先同步",
+          "displayName" : "拾光 Pro (年度)",
+          "locale" : "zh-Hans"
+        },
+        {
+          "description" : "AI Polish, premium fonts, priority sync",
+          "displayName" : "Inkling Pro (Yearly)",
+          "locale" : "en"
+        }
+      ],
+      "price" : 48,
+      "referenceName" : "Pro Yearly",
+      "subscription" : {
+        "groupID" : "B8C41E1C",
+        "renewalRate" : "yearly",
+        "introductoryOffer" : {
+          "internalID" : "com.gongdexin.paul.Inkling.pro.yearly.freetrial",
+          "numberOfPeriods" : 1,
+          "paymentMode" : "freeTrial",
+          "subscriptionPeriod" : {
+            "unit" : "week",
+            "count" : 1
+          },
+          "type" : "introductory"
+        }
+      },
+      "type" : "subscription"
+    }
+  ],
+  "settings" : {
+
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "B8C41E1C",
+      "localizations" : [
+        {
+          "displayName" : "Inkling Pro",
+          "locale" : "en"
+        },
+        {
+          "displayName" : "拾光 Pro",
+          "locale" : "zh-Hans"
+        }
+      ],
+      "name" : "Pro"
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

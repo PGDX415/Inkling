@@ -91,6 +91,7 @@
 "common.save" = "Save";
 "common.done" = "Done";
 "common.back" = "Back";
+"common.retry" = "Retry";
 
 /* Date */
 "date.today" = "Today";
@@ -245,3 +246,82 @@
 "privacy.s7_title" = "7. Contact Us";
 "privacy.s7_body" = "If you have questions about this privacy policy, please reach out via GitHub Issues:\nhttps://github.com/PGDX415/Inkling/issues";
 "privacy.last_updated" = "Last updated:";
+
+/* AI Polish */
+"ai.polish_error_title" = "AI Polish Failed";
+"ai.rate_limited" = "Please wait %d seconds before polishing again";
+
+/* Markdown Placeholders */
+"md.placeholder_bold" = "bold text";
+"md.placeholder_italic" = "italic text";
+"md.placeholder_strikethrough" = "strikethrough";
+"md.placeholder_heading" = "Heading";
+"md.placeholder_list" = "List item";
+"md.placeholder_quote" = "Quote";
+"md.placeholder_code" = "code";
+
+/* Tags */
+"journal.tag_placeholder" = "Add tag...";
+
+/* Voice */
+"voice.sample_text" = "The quick brown fox jumps over the lazy dog";
+
+/* Onboarding */
+"onboarding.skip" = "Skip";
+"onboarding.next" = "Next";
+"onboarding.start" = "Start Writing";
+"onboarding.write_title" = "Capture Your Moments";
+"onboarding.write_desc" = "Write freely with markdown support — bold, italics, headings, and more. Your thoughts, your style.";
+"onboarding.ai_title" = "AI Polish";
+"onboarding.ai_desc" = "Refine your writing with one tap. AI helps polish grammar and flow while keeping your voice intact.";
+"onboarding.stats_title" = "Track Your Journey";
+"onboarding.stats_desc" = "See your writing streaks, mood patterns, and word counts. Watch your journal grow over time.";
+"onboarding.privacy_title" = "Your Data, Your Privacy";
+"onboarding.privacy_desc" = "Everything stays on your device and iCloud. Lock with Face ID. No tracking, no ads, no third-party access.";
+
+/* Accessibility */
+"a11y.bookmark" = "Bookmark";
+"a11y.unbookmark" = "Remove bookmark";
+"a11y.read_aloud" = "Read aloud";
+"a11y.share_card" = "Share as card";
+"a11y.remove_photo" = "Remove photo";
+"a11y.remove_tag" = "Remove tag %@";
+
+/* Store */
+"store.pro_title" = "Inkling Pro";
+"store.pro_subtitle" = "Unlock the full journaling experience";
+"store.feature_ai_title" = "Built-in AI Polish";
+"store.feature_ai_desc" = "200 polishes per month — no API key needed";
+"store.feature_font_title" = "Premium Fonts";
+"store.feature_font_desc" = "Handwriting, rounded, and serif fonts";
+"store.feature_photo_title" = "Unlimited Photos";
+"store.feature_photo_desc" = "Attach up to 20 photos per entry";
+"store.feature_sync_title" = "Priority iCloud Sync";
+"store.feature_sync_desc" = "Faster sync across all your devices";
+"store.feature_lock_title" = "Per-Entry Lock";
+"store.feature_lock_desc" = "Lock individual entries with Face ID";
+"store.period_monthly" = "Monthly";
+"store.period_yearly" = "Yearly";
+"store.per_month" = "mo";
+"store.per_year" = "yr";
+"store.save_percent" = "Save %d%%";
+"store.trial_info" = "7-day free trial, cancel anytime";
+"store.subscribe_button" = "Try Free & Subscribe";
+"store.restore" = "Restore Purchases";
+"store.terms_prefix" = "By subscribing you agree to our";
+"store.terms" = "Terms of Service";
+"store.privacy" = "Privacy Policy";
+"store.renews_on" = "Renews on %@";
+"store.error_unverified" = "Purchase could not be verified";
+"store.products_not_found" = "In-app purchases unavailable in this environment.\nRun from Xcode with the StoreKit configuration enabled to test purchases.";
+"store.manage_subscription" = "Manage Subscription";
+"settings.section_pro" = "Inkling Pro";
+"settings.pro_active" = "You're a Pro member ✨";
+"settings.pro_upgrade" = "Upgrade to Pro";
+
+/* Sync Status */
+"sync.status_uptodate" = "Up to date";
+"sync.status_syncing" = "Syncing...";
+"sync.status_imported" = "Updated %@";
+"sync.status_exported" = "Exported";
+"sync.status_error" = "Sync error";
