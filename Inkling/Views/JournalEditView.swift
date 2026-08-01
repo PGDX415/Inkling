@@ -26,6 +26,8 @@ struct JournalEditView: View {
     @State private var tagInput = ""
     @State private var entryTags: [String] = []
     @State private var isPreviewMode = false
+    @State private var showAccessorySheet = false
+    @State private var showDatePickerPopover = false
 
     @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.deepseek.rawValue
     @AppStorage("fontStyle") private var fontStyle = FontStyle.songti.rawValue
@@ -74,31 +76,13 @@ struct JournalEditView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Date picker row
-            datePickerRow
+            // Compact metadata accessory bar
+            metadataBar
 
             Divider()
                 .overlay(Color.brown.opacity(0.2))
 
-            // Mood picker
-            moodPicker
-
-            Divider()
-                .overlay(Color.brown.opacity(0.2))
-
-            // Tag editor
-            tagEditor
-
-            Divider()
-                .overlay(Color.brown.opacity(0.2))
-
-            // Photo strip
-            photoStrip
-
-            Divider()
-                .overlay(Color.brown.opacity(0.2))
-
-            // Editor area
+            // Editor area — takes all remaining space
             if isPreviewMode {
                 previewContent
             } else {
@@ -284,6 +268,15 @@ struct JournalEditView: View {
         .fullScreenCover(item: $fullScreenPhoto) { photo in
             FullScreenPhotoView(imageData: photo.imageData)
         }
+        .popover(isPresented: $showDatePickerPopover) {
+            datePickerPopover
+                .presentationCompactAdaptation(.popover)
+        }
+        .sheet(isPresented: $showAccessorySheet) {
+            accessorySheet
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
         .alert(String(localized: "ai.polish_error_title"), isPresented: Binding(
             get: { polishError != nil },
             set: { if !$0 { polishError = nil } }
@@ -294,119 +287,333 @@ struct JournalEditView: View {
         }
     }
 
-    // MARK: - Subviews
-    private var photoStrip: some View {
+    // MARK: - Metadata Bar (compact single row)
+    private var metadataBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(Array(entryPhotos.enumerated()), id: \.element.id) { index, photo in
-                    if let uiImage = UIImage(data: photo.imageData) {
-                        Button {
-                            fullScreenPhoto = photo
-                        } label: {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 72, height: 72)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        }
-                        .overlay(alignment: .topTrailing) {
-                            Button {
-                                deletePhoto(at: index)
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.caption)
-                                    .foregroundStyle(.white)
-                                    .background(Circle().fill(Color.black.opacity(0.5)))
-                            }
-                            .padding(4)
-                            .accessibilityLabel(String(localized: "a11y.remove_photo"))
-                        }
+                // Date chip
+                Button {
+                    showDatePickerPopover = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 11))
+                        Text(formattedDateLabel)
                     }
+                }
+                .chipStyle()
+
+                // Weather chip (if available)
+                if isFetchingWeather {
+                    HStack(spacing: 3) {
+                        ProgressView()
+                            .scaleEffect(0.5)
+                    }
+                    .chipStyle(active: true)
+                } else if let weather = weatherData {
+                    HStack(spacing: 3) {
+                        Image(systemName: weather.condition.symbolName)
+                            .font(.system(size: 11))
+                        Text("\(Int(weather.temperature.rounded()))°")
+                    }
+                    .chipStyle(active: true)
                 }
 
-                if entryPhotos.count < maxPhotoCount {
-                    PhotosPicker(
-                        selection: $selectedPhotos,
-                        maxSelectionCount: maxPhotoCount - entryPhotos.count,
-                        matching: .images
-                    ) {
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.brown.opacity(0.3), lineWidth: 1.5)
-                            .frame(width: 72, height: 72)
-                            .overlay {
-                                VStack(spacing: 4) {
-                                    Image(systemName: "plus")
-                                        .font(.title3)
-                                    Text("journal.photos_add")
-                                        .font(.caption2)
-                                }
-                                .foregroundStyle(.brown.opacity(0.5))
-                            }
+                // Mood chip
+                if let mood = selectedMood, let moodType = MoodType(rawValue: mood) {
+                    Button {
+                        showAccessorySheet = true
+                    } label: {
+                        Text(moodType.emoji)
                     }
+                    .chipStyle(active: true)
                 }
+
+                // Tags chip
+                if !entryTags.isEmpty {
+                    Button {
+                        showAccessorySheet = true
+                    } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: "tag")
+                                .font(.system(size: 10))
+                            Text("\(entryTags.count)")
+                        }
+                    }
+                    .chipStyle(active: true)
+                }
+
+                // Photos chip
+                if !entryPhotos.isEmpty {
+                    Button {
+                        showAccessorySheet = true
+                    } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: "photo")
+                                .font(.system(size: 10))
+                            Text("\(entryPhotos.count)")
+                        }
+                    }
+                    .chipStyle(active: true)
+                }
+
+                // Add / Edit button
+                Button {
+                    showAccessorySheet = true
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .chipStyle()
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
         }
     }
 
-    private var datePickerRow: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Image(systemName: "calendar")
-                    .foregroundStyle(.brown)
-                    .font(.subheadline)
-
-                DatePicker("", selection: $entryDate, displayedComponents: [.date, .hourAndMinute])
-                    .labelsHidden()
-                    .onChange(of: entryDate) { _, newDate in
-                        entry.createdAt = newDate
-                        entry.modifiedAt = Date()
-                        // Clear weather if date is not today
-                        if !Calendar.current.isDate(newDate, inSameDayAs: Date()) {
-                            entry.weatherCondition = nil
-                            entry.temperature = nil
-                            entry.weatherLocation = nil
-                            weatherData = nil
+    // MARK: - Accessory Sheet (mood, tags, photos)
+    private var accessorySheet: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Section: Mood
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Image(systemName: "face.smiling")
+                                .font(.caption)
+                                .foregroundStyle(.brown)
+                            Text(selectedMood != nil
+                                 ? String(localized: String.LocalizationValue(MoodType(rawValue: selectedMood ?? "")?.localizationKey ?? ""))
+                                 : "Mood")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            if selectedMood != nil {
+                                Button("Clear") {
+                                    selectedMood = nil
+                                    scheduleAutoSave()
+                                }
+                                .font(.caption2)
+                                .foregroundStyle(.brown.opacity(0.6))
+                            }
                         }
-                        scheduleAutoSave()
+                        .padding(.horizontal, 20)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 16) {
+                                ForEach(MoodType.allCases, id: \.rawValue) { mood in
+                                    Button {
+                                        selectedMood = (selectedMood == mood.rawValue) ? nil : mood.rawValue
+                                        scheduleAutoSave()
+                                    } label: {
+                                        VStack(spacing: 4) {
+                                            Text(mood.emoji)
+                                                .font(.title)
+                                            Text(String(localized: String.LocalizationValue(mood.localizationKey)))
+                                                .font(.caption2)
+                                                .foregroundStyle(selectedMood == mood.rawValue ? .brown : .secondary)
+                                        }
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 8)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(selectedMood == mood.rawValue ? Color.brown.opacity(0.1) : Color.clear)
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(.horizontal, 16)
+                        }
                     }
+                    .padding(.vertical, 16)
 
-                Spacer()
+                    Divider()
+                        .overlay(Color.brown.opacity(0.15))
+                        .padding(.horizontal, 20)
 
-                Text(wordCount > 0
-                     ? String(format: String(localized: "journal.word_count"), wordCount)
-                     : "")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+                    // Section: Tags
+                    VStack(alignment: .leading, spacing: 10) {
+                        Label(String(localized: "journal.tag_placeholder"), systemImage: "tag")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 20)
 
-            // Weather indicator
-            if isFetchingWeather {
-                HStack(spacing: 6) {
-                    ProgressView()
-                        .scaleEffect(0.6)
-                    Text("Fetching weather...")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        // Tag chips
+                        if !entryTags.isEmpty {
+                            FlowLayout(spacing: 6) {
+                                ForEach(entryTags, id: \.self) { tag in
+                                    HStack(spacing: 4) {
+                                        Text("#\(tag)")
+                                            .font(.caption)
+                                        Button {
+                                            entryTags.removeAll { $0 == tag }
+                                            scheduleAutoSave()
+                                        } label: {
+                                            Image(systemName: "xmark")
+                                                .font(.system(size: 8, weight: .bold))
+                                        }
+                                    }
+                                    .foregroundStyle(.brown)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .fill(Color.brown.opacity(0.1))
+                                    )
+                                    .accessibilityLabel(String(format: String(localized: "a11y.remove_tag"), tag))
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                        }
+
+                        // Tag input
+                        HStack(spacing: 8) {
+                            TextField(String(localized: "journal.tag_placeholder"), text: $tagInput)
+                                .font(.subheadline)
+                                .onSubmit { addTag() }
+
+                            if !tagInput.isEmpty {
+                                Button { addTag() } label: {
+                                    Image(systemName: "plus.circle.fill")
+                                        .foregroundStyle(.brown)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.brown.opacity(0.04))
+                        )
+                        .padding(.horizontal, 20)
+                    }
+                    .padding(.vertical, 16)
+
+                    Divider()
+                        .overlay(Color.brown.opacity(0.15))
+                        .padding(.horizontal, 20)
+
+                    // Section: Photos
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack {
+                            Label(String(localized: "journal.photos_add"), systemImage: "photo.on.rectangle")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Text("\(entryPhotos.count)/\(maxPhotoCount)")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.horizontal, 20)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 10) {
+                                ForEach(Array(entryPhotos.enumerated()), id: \.element.id) { index, photo in
+                                    if let uiImage = UIImage(data: photo.imageData) {
+                                        Button {
+                                            fullScreenPhoto = photo
+                                        } label: {
+                                            Image(uiImage: uiImage)
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 80, height: 80)
+                                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                        }
+                                        .overlay(alignment: .topTrailing) {
+                                            Button {
+                                                deletePhoto(at: index)
+                                            } label: {
+                                                Image(systemName: "xmark.circle.fill")
+                                                    .font(.caption)
+                                                    .foregroundStyle(.white)
+                                                    .background(Circle().fill(Color.black.opacity(0.5)))
+                                            }
+                                            .padding(4)
+                                            .accessibilityLabel(String(localized: "a11y.remove_photo"))
+                                        }
+                                    }
+                                }
+
+                                if entryPhotos.count < maxPhotoCount {
+                                    PhotosPicker(
+                                        selection: $selectedPhotos,
+                                        maxSelectionCount: maxPhotoCount - entryPhotos.count,
+                                        matching: .images
+                                    ) {
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color.brown.opacity(0.3), style: StrokeStyle(lineWidth: 1.5, dash: [4]))
+                                            .frame(width: 80, height: 80)
+                                            .overlay {
+                                                VStack(spacing: 4) {
+                                                    Image(systemName: "plus")
+                                                        .font(.title3)
+                                                    Text("journal.photos_add")
+                                                        .font(.caption2)
+                                                }
+                                                .foregroundStyle(.brown.opacity(0.5))
+                                            }
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                        }
+                    }
+                    .padding(.vertical, 16)
                 }
-            } else if let weather = weatherData {
-                HStack(spacing: 6) {
-                    Image(systemName: weather.condition.symbolName)
-                        .foregroundStyle(.brown)
-                        .font(.caption)
-                    Text("\(String(localized: String.LocalizationValue(weather.condition.localizationKey))) · \(Int(weather.temperature.rounded()))°")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text("· \(weather.location)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            }
+            .background(Color("JournalBackground"))
+            .navigationTitle(String(localized: "journal.new_entry_title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(String(localized: "common.done")) {
+                        showAccessorySheet = false
+                    }
                 }
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        .background(Color("JournalBackground"))
+    }
+
+    // MARK: - Date Picker Popover
+    private var datePickerPopover: some View {
+        VStack(spacing: 16) {
+            DatePicker(
+                "",
+                selection: $entryDate,
+                displayedComponents: [.date, .hourAndMinute]
+            )
+            .datePickerStyle(.graphical)
+            .labelsHidden()
+            .onChange(of: entryDate) { _, newDate in
+                entry.createdAt = newDate
+                entry.modifiedAt = Date()
+                if !Calendar.current.isDate(newDate, inSameDayAs: Date()) {
+                    entry.weatherCondition = nil
+                    entry.temperature = nil
+                    entry.weatherLocation = nil
+                    weatherData = nil
+                }
+                scheduleAutoSave()
+            }
+
+            HStack {
+                Button(String(localized: "common.cancel")) {
+                    showDatePickerPopover = false
+                }
+                .foregroundStyle(.secondary)
+
+                Spacer()
+
+                Button(String(localized: "common.done")) {
+                    showDatePickerPopover = false
+                }
+                .fontWeight(.medium)
+            }
+            .padding(.horizontal)
+        }
+        .padding()
+        .frame(width: 320)
     }
 
     private var savedIndicator: some View {
@@ -423,66 +630,6 @@ struct JournalEditView: View {
             .padding(.bottom, 16)
     }
 
-    private var tagEditor: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Existing tags
-            if !entryTags.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
-                        ForEach(entryTags, id: \.self) { tag in
-                            HStack(spacing: 4) {
-                                Text("#\(tag)")
-                                    .font(.caption)
-                                    .foregroundStyle(.brown)
-                                Button {
-                                    entryTags.removeAll { $0 == tag }
-                                    scheduleAutoSave()
-                                } label: {
-                                    Image(systemName: "xmark")
-                                        .font(.system(size: 8, weight: .bold))
-                                        .foregroundStyle(.brown.opacity(0.6))
-                                }
-                                .accessibilityLabel(String(format: String(localized: "a11y.remove_tag"), tag))
-                            }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(Color.brown.opacity(0.1))
-                            )
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                }
-            }
-
-            // Input field
-            HStack(spacing: 8) {
-                Image(systemName: "tag")
-                    .font(.caption)
-                    .foregroundStyle(.brown.opacity(0.5))
-
-                TextField(String(localized: "journal.tag_placeholder"), text: $tagInput)
-                    .font(.subheadline)
-                    .onSubmit {
-                        addTag()
-                    }
-
-                if !tagInput.isEmpty {
-                    Button {
-                        addTag()
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .foregroundStyle(.brown)
-                            .font(.subheadline)
-                    }
-                }
-            }
-            .padding(.horizontal, 20)
-        }
-        .padding(.vertical, 6)
-    }
-
     private func addTag() {
         let trimmed = tagInput.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
@@ -491,35 +638,6 @@ struct JournalEditView: View {
             scheduleAutoSave()
         }
         tagInput = ""
-    }
-
-    private var moodPicker: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(MoodType.allCases, id: \.rawValue) { mood in
-                    Button {
-                        selectedMood = (selectedMood == mood.rawValue) ? nil : mood.rawValue
-                    } label: {
-                        VStack(spacing: 2) {
-                            Text(mood.emoji)
-                                .font(.title2)
-                            Text(String(localized: String.LocalizationValue(mood.localizationKey)))
-                                .font(.caption2)
-                                .foregroundStyle(selectedMood == mood.rawValue ? .brown : .secondary)
-                        }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(selectedMood == mood.rawValue ? Color.brown.opacity(0.1) : Color.clear)
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-        }
     }
 
     // MARK: - Preview Content
@@ -582,6 +700,25 @@ struct JournalEditView: View {
 
     private var wordCount: Int {
         content.filter { !$0.isWhitespace }.count
+    }
+
+    /// Formatted date label for the metadata bar chip
+    private var formattedDateLabel: String {
+        let formatter = DateFormatter()
+        let calendar = Calendar.current
+        if calendar.isDateInToday(entryDate) {
+            formatter.dateFormat = "HH:mm"
+            return "\(String(localized: "date.today")) \(formatter.string(from: entryDate))"
+        } else if calendar.isDateInYesterday(entryDate) {
+            formatter.dateFormat = "HH:mm"
+            return "\(String(localized: "date.yesterday")) \(formatter.string(from: entryDate))"
+        } else if calendar.isDateInTomorrow(entryDate) {
+            formatter.dateFormat = "HH:mm"
+            return "\(String(localized: "date.tomorrow")) \(formatter.string(from: entryDate))"
+        } else {
+            formatter.dateFormat = "MM/dd HH:mm"
+            return formatter.string(from: entryDate)
+        }
     }
 
     // MARK: - Auto-save
@@ -720,3 +857,19 @@ struct JournalEditView: View {
         JournalEditView(entry: JournalEntry())
     }
 }
+
+// MARK: - Chip Style Modifier
+extension View {
+    func chipStyle(active: Bool = false) -> some View {
+        self
+            .font(.caption)
+            .foregroundStyle(active ? .white : .brown)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(active ? Color.brown : Color.brown.opacity(0.08))
+            )
+    }
+}
+
