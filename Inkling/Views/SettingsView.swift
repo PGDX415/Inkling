@@ -32,7 +32,7 @@ struct SettingsView: View {
     @State private var importMessage = ""
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var previewingVoice: String?
-    @State private var availableVoices: [(language: String, voices: [AVSpeechSynthesisVoice])] = []
+    @State private var availableVoices: [AVSpeechSynthesisVoice] = []
     @State private var isApiKeyExpanded = false
 
     private let speechRateRange: ClosedRange<Double> = 0.35...0.65
@@ -636,34 +636,54 @@ struct SettingsView: View {
     // MARK: - Voice Section
     @ViewBuilder
     private var voiceSection: some View {
-        let allVoices = availableVoices.isEmpty
-            ? SpeechManager.availableVoices()
-            : availableVoices
-        let chineseVoices = allVoices.filter { group in
-            group.voices.contains { $0.language.hasPrefix("zh") }
-        }
-        let hasChineseVoices = !chineseVoices.isEmpty
+        let enhancedList = availableVoices.filter { $0.quality == .enhanced || $0.quality == .premium }
+        let defaultList = availableVoices.filter { $0.quality == .default }
+        let hasVoices = !availableVoices.isEmpty
 
         Section {
-            if hasChineseVoices {
-                ForEach(chineseVoices, id: \.language) { group in
-                    let zhVoices = group.voices.filter { $0.language.hasPrefix("zh") }
-                    if !zhVoices.isEmpty {
-                        DisclosureGroup {
-                            ForEach(zhVoices, id: \.identifier) { voice in
-                                voiceRow(voice, language: group.language)
-                            }
-                        } label: {
-                            Text(group.language)
-                                .font(.subheadline)
-                                .fontWeight(.medium)
+            if hasVoices {
+                // Enhanced / Premium AI voices
+                if !enhancedList.isEmpty {
+                    ForEach(enhancedList, id: \.identifier) { voice in
+                        voiceRow(voice, language: voice.language)
+                    }
+                }
+
+                // Default voices in collapsible section
+                if !defaultList.isEmpty {
+                    DisclosureGroup {
+                        ForEach(defaultList, id: \.identifier) { voice in
+                            voiceRow(voice, language: voice.language)
                         }
+                    } label: {
+                        HStack {
+                            Text("voice.basic_voices")
+                            Spacer()
+                            Text("\(defaultList.count)")
+                        }
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     }
                 }
             } else {
-                Text("voice.unavailable")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                VStack(spacing: 12) {
+                    Text("voice.unavailable")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(String(localized: "voice.download_hint"))
+                            .foregroundStyle(.secondary)
+                    }
+                    .font(.caption)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.brown.opacity(0.06))
+                    )
+                }
             }
 
             // Speech rate
@@ -705,6 +725,8 @@ struct SettingsView: View {
     private func voiceRow(_ voice: AVSpeechSynthesisVoice, language: String) -> some View {
         let isSelected = voiceIdentifier == voice.identifier
         let isPreviewing = previewingVoice == voice.identifier
+        let isEnhanced = voice.quality == .enhanced || voice.quality == .premium
+        let qualityText = SpeechManager.qualityLabel(voice)
 
         return Button {
             voiceIdentifier = voice.identifier
@@ -719,9 +741,22 @@ struct SettingsView: View {
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(voice.name)
-                        .font(.subheadline)
-                        .foregroundStyle(.primary)
+                    HStack(spacing: 6) {
+                        Text(voice.name)
+                            .font(.subheadline)
+                            .foregroundStyle(.primary)
+                        if let label = qualityText {
+                            Text(label)
+                                .font(.system(size: 9, weight: .medium))
+                                .foregroundStyle(isEnhanced ? .green : .secondary)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(isEnhanced ? Color.green.opacity(0.1) : Color.secondary.opacity(0.1))
+                                )
+                        }
+                    }
                     Text(voice.gender == .female
                          ? String(localized: "voice.female")
                          : String(localized: "voice.male"))
@@ -770,7 +805,7 @@ struct SettingsView: View {
     // MARK: - Voice Refresh
     private func refreshVoices() {
         if availableVoices.isEmpty {
-            availableVoices = SpeechManager.availableVoices()
+            availableVoices = SpeechManager.rankedVoices()
         }
     }
 

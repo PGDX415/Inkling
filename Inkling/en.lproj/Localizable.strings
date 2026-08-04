@@ -265,6 +265,11 @@
 
 /* Voice */
 "voice.sample_text" = "The quick brown fox jumps over the lazy dog";
+"voice.quality_enhanced" = "AI Enhanced";
+"voice.quality_personal" = "My Voice";
+"voice.quality_basic" = "Basic";
+"voice.basic_voices" = "Basic Voices";
+"voice.download_hint" = "Go to Settings → Accessibility → Spoken Content → Voices → Chinese, download an Enhanced voice, then return here to select it.";
 
 /* Onboarding */
 "onboarding.skip" = "Skip";

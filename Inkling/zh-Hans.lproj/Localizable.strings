@@ -265,6 +265,11 @@
 
 /* Voice */
 "voice.sample_text" = "春眠不觉晓，处处闻啼鸟";
+"voice.quality_enhanced" = "AI 增强";
+"voice.quality_personal" = "我的声音";
+"voice.quality_basic" = "基础";
+"voice.basic_voices" = "基础语音";
+"voice.download_hint" = "前往 系统设置 → 辅助功能 → 朗读内容 → 语音 → 中文，下载一个「增强」语音，然后回到这里选择。";
 
 /* Onboarding */
 "onboarding.skip" = "跳过";

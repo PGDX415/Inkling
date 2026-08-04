@@ -16,15 +16,34 @@ final class SpeechManager: NSObject, AVSpeechSynthesizerDelegate {
         synthesizer.delegate = self
     }
 
-    /// Available voices, grouped by language
-    static func availableVoices() -> [(language: String, voices: [AVSpeechSynthesisVoice])] {
-        let all = AVSpeechSynthesisVoice.speechVoices()
-        let grouped = Dictionary(grouping: all) { voice in
-            Locale.current.localizedString(forIdentifier: voice.language) ?? voice.language
+    /// All Chinese voices sorted by quality: AI enhanced → basic. Personal voices excluded.
+    static func rankedVoices() -> [AVSpeechSynthesisVoice] {
+        let all = AVSpeechSynthesisVoice.speechVoices().filter {
+            $0.language.hasPrefix("zh") && !isPersonalVoice($0)
         }
-        return grouped
-            .map { (language: $0.key, voices: $0.value.sorted { $0.name < $1.name }) }
-            .sorted { $0.language < $1.language }
+        let enhanced = all.filter { $0.quality == .premium || $0.quality == .enhanced }
+        let basic = all.filter { $0.quality == .default }
+
+        return enhanced.sorted(by: { $0.name < $1.name })
+             + basic.sorted(by: { $0.name < $1.name })
+    }
+
+    private static func isPersonalVoice(_ voice: AVSpeechSynthesisVoice) -> Bool {
+        if #available(iOS 17.0, *) {
+            return voice.identifier.lowercased().contains("personal")
+        }
+        return false
+    }
+
+    static func qualityLabel(_ voice: AVSpeechSynthesisVoice) -> String? {
+        switch voice.quality {
+        case .premium, .enhanced:
+            return String(localized: "voice.quality_enhanced")
+        case .default:
+            return String(localized: "voice.quality_basic")
+        @unknown default:
+            return nil
+        }
     }
 
     /// Speak the given text using a specific voice
