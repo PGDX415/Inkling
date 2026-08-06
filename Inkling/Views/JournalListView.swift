@@ -22,6 +22,7 @@ struct JournalListView: View {
     @State private var showDeleteAlert = false
     @State private var entryToDelete: JournalEntry?
     @State private var selectedTag: String? = nil
+    @State private var columnVisibility = NavigationSplitViewVisibility.automatic
     var initialTag: String? = nil
 
     /// Look up the currently selected entry by its ID
@@ -107,18 +108,12 @@ struct JournalListView: View {
     }
 
     var body: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             sidebarContent
         } detail: {
             detailContent
         }
-        .tabItem {
-            Label {
-                Text("tab.journal")
-            } icon: {
-                Image(systemName: "book.pages")
-            }
-        }
+        .navigationSplitViewStyle(.balanced)
         .alert(
             String(localized: "journal.delete_title"),
             isPresented: $showDeleteAlert
@@ -169,6 +164,22 @@ struct JournalListView: View {
             prompt: "journal.search_placeholder"
         )
         .toolbar {
+            #if os(iOS)
+            ToolbarItem(placement: .navigationBarLeading) {
+                if horizontalSizeClass == .regular {
+                    Button {
+                        withAnimation {
+                            columnVisibility = columnVisibility == .detailOnly ? .all : .detailOnly
+                        }
+                    } label: {
+                        Image(systemName: "sidebar.left")
+                            .fontWeight(.medium)
+                    }
+                    .tint(.brown)
+                }
+            }
+            #endif
+
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     createNewEntry()
@@ -176,6 +187,7 @@ struct JournalListView: View {
                     Image(systemName: "square.and.pencil")
                         .fontWeight(.medium)
                 }
+                .keyboardShortcut("n", modifiers: .command)
                 .tint(.brown)
             }
         }
@@ -183,11 +195,11 @@ struct JournalListView: View {
             if let initialTag, selectedTag == nil {
                 selectedTag = initialTag
             }
-            updateWidgetData()
+            Task.detached { updateWidgetData() }
         }
         // Update widget when entries change
         .onChange(of: entries.count) { _, _ in
-            updateWidgetData()
+            Task.detached { updateWidgetData() }
         }
     }
 
@@ -360,6 +372,18 @@ struct JournalListView: View {
                         ForEach(onThisDayEntries) { entry in
                             JournalRowView(entry: entry, searchText: viewModel.searchText)
                                 .tag(entry.uuid)
+                                .contextMenu {
+                                    Button {
+                                        toggleBookmark(entry)
+                                    } label: {
+                                        Label(
+                                            entry.isBookmarked
+                                                ? String(localized: "a11y.unbookmark")
+                                                : String(localized: "a11y.bookmark"),
+                                            systemImage: entry.isBookmarked ? "bookmark.slash" : "bookmark"
+                                        )
+                                    }
+                                }
                                 .listRowBackground(
                                     Color.brown.opacity(0.04)
                                 )
@@ -374,6 +398,25 @@ struct JournalListView: View {
                         ForEach(group.entries) { entry in
                             JournalRowView(entry: entry, searchText: viewModel.searchText)
                                 .tag(entry.uuid)
+                                .contextMenu {
+                                    Button {
+                                        toggleBookmark(entry)
+                                    } label: {
+                                        Label(
+                                            entry.isBookmarked
+                                                ? String(localized: "a11y.unbookmark")
+                                                : String(localized: "a11y.bookmark"),
+                                            systemImage: entry.isBookmarked ? "bookmark.slash" : "bookmark"
+                                        )
+                                    }
+                                    Divider()
+                                    Button(role: .destructive) {
+                                        entryToDelete = entry
+                                        showDeleteAlert = true
+                                    } label: {
+                                        Label(String(localized: "journal.delete"), systemImage: "trash")
+                                    }
+                                }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
                                         entryToDelete = entry
@@ -498,6 +541,13 @@ struct JournalListView: View {
             try? modelContext.save()
         }
         entryToDelete = nil
+    }
+
+    private func toggleBookmark(_ entry: JournalEntry) {
+        withAnimation {
+            entry.isBookmarked.toggle()
+            try? modelContext.save()
+        }
     }
 }
 

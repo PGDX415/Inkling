@@ -7,6 +7,9 @@
 
 import SwiftUI
 import SwiftData
+#if os(iOS)
+import UIKit
+#endif
 
 @main
 struct InklingApp: App {
@@ -18,6 +21,7 @@ struct InklingApp: App {
     @State private var showOnboarding = false
     @State private var syncMonitor = SyncMonitor()
     @Environment(\.scenePhase) private var scenePhase
+    @FocusedValue(\.editorActions) private var focusedEditor
 
     init() {
         CrashDiagnostics.shared.start()
@@ -93,7 +97,19 @@ struct InklingApp: App {
                         }
                     }
                     .onChange(of: scenePhase) { _, newPhase in
-                        if newPhase == .background || newPhase == .inactive {
+                        if newPhase == .background {
+                            #if os(iOS)
+                            // Request extra time for CloudKit sync to complete gracefully
+                            var bgTaskID: UIBackgroundTaskIdentifier = .invalid
+                            bgTaskID = UIApplication.shared.beginBackgroundTask {
+                                UIApplication.shared.endBackgroundTask(bgTaskID)
+                                bgTaskID = .invalid
+                            }
+                            DispatchQueue.global().asyncAfter(deadline: .now() + 3) {
+                                UIApplication.shared.endBackgroundTask(bgTaskID)
+                                bgTaskID = .invalid
+                            }
+                            #endif
                             if isLockEnabled {
                                 isLocked = true
                             }
@@ -103,16 +119,76 @@ struct InklingApp: App {
             }
         }
         .modelContainer(sharedModelContainer)
-        #if os(macOS)
         .commands {
-            CommandGroup(replacing: .newItem) {
-                Button("journal.new_entry") {
-                    // New entry command for macOS
-                    NotificationCenter.default.post(name: .init("InklingNewEntry"), object: nil)
+            // Tab navigation shortcuts
+            CommandGroup(after: .sidebar) {
+                Button(String(localized: "tab.journal")) {
+                    NotificationCenter.default.post(name: .init("InklingSelectTab"), object: 0)
                 }
-                .keyboardShortcut("n", modifiers: .command)
+                .keyboardShortcut("1", modifiers: .command)
+
+                Button(String(localized: "tab.calendar")) {
+                    NotificationCenter.default.post(name: .init("InklingSelectTab"), object: 1)
+                }
+                .keyboardShortcut("2", modifiers: .command)
+
+                Button(String(localized: "tab.settings")) {
+                    NotificationCenter.default.post(name: .init("InklingSelectTab"), object: 2)
+                }
+                .keyboardShortcut(",", modifiers: .command)
+            }
+
+            // Editor formatting shortcuts
+            CommandGroup(after: .textFormatting) {
+                Button("**Bold**") {
+                    focusedEditor?.insertBold()
+                }
+                .keyboardShortcut("b", modifiers: .command)
+
+                Button("*Italic*") {
+                    focusedEditor?.insertItalic()
+                }
+                .keyboardShortcut("i", modifiers: .command)
+
+                Button("~~Strikethrough~~") {
+                    focusedEditor?.insertStrikethrough()
+                }
+                .keyboardShortcut("k", modifiers: [.command, .shift])
+
+                Divider()
+
+                Button("# Heading") {
+                    focusedEditor?.insertHeading()
+                }
+                .keyboardShortcut("h", modifiers: [.command, .shift])
+
+                Button("> Quote") {
+                    focusedEditor?.insertQuote()
+                }
+                .keyboardShortcut("'", modifiers: [.command, .shift])
+
+                Button("- List") {
+                    focusedEditor?.insertList()
+                }
+                .keyboardShortcut("l", modifiers: [.command, .shift])
+
+                Divider()
+
+                Button(String(localized: "editor.preview_mode")) {
+                    focusedEditor?.togglePreview()
+                }
+                .keyboardShortcut("p", modifiers: [.command, .shift])
             }
         }
+
+        // Secondary window for opening a journal entry on iPad
+        #if os(iOS)
+        WindowGroup(id: "entry-detail", for: String.self) { $entryUUID in
+            if let uuid = entryUUID {
+                EntryWindowView(entryUUID: uuid)
+            }
+        }
+        .modelContainer(sharedModelContainer)
         #endif
     }
 }

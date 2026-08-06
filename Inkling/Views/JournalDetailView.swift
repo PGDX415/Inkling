@@ -6,6 +6,7 @@ import AVFoundation
 struct JournalDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openWindow) private var openWindow
     @AppStorage("fontStyle") private var fontStyle = FontStyle.songti.rawValue
     @AppStorage("fontSize") private var fontSize: Double = 18.0
     @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.deepseek.rawValue
@@ -88,35 +89,8 @@ struct JournalDetailView: View {
             }
 
             ToolbarItem(placement: .navigationBarTrailing) {
-                HStack(spacing: 16) {
-                    // Share card button
-                    if !entry.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Button {
-                            renderAndShare()
-                        } label: {
-                            Image(systemName: "square.and.arrow.up")
-                        }
-                        .tint(.brown)
-                        .accessibilityLabel(String(localized: "a11y.share_card"))
-                    }
-
-                    // AI Polish button
-                    if !currentProviderKey.isEmpty && !entry.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Button {
-                            polishContent()
-                        } label: {
-                            if isPolishing {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                            } else {
-                                Image(systemName: "sparkles")
-                            }
-                        }
-                        .disabled(isPolishing)
-                        .tint(.brown)
-                        .accessibilityLabel(String(localized: "journal.polish"))
-                    }
-
+                HStack(spacing: 12) {
+                    // Edit button — always visible
                     Button {
                         isEditing = true
                     } label: {
@@ -124,12 +98,46 @@ struct JournalDetailView: View {
                     }
                     .tint(.brown)
 
-                    Button(role: .destructive) {
-                        showDeleteAlert = true
+                    // Menu with secondary actions
+                    Menu {
+                        if !entry.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Button {
+                                renderAndShare()
+                            } label: {
+                                Label(String(localized: "a11y.share_card"), systemImage: "square.and.arrow.up")
+                            }
+
+                            if !currentProviderKey.isEmpty {
+                                Button {
+                                    polishContent()
+                                } label: {
+                                    Label(String(localized: "journal.polish"), systemImage: "sparkles")
+                                }
+                                .disabled(isPolishing)
+                            }
+                        }
+
+                        Divider()
+
+                        #if os(iOS)
+                        Button {
+                            openWindow(id: "entry-detail", value: entry.uuid)
+                        } label: {
+                            Label("Open in New Window", systemImage: "rectangle.split.2x1")
+                        }
+                        #endif
+
+                        Divider()
+
+                        Button(role: .destructive) {
+                            showDeleteAlert = true
+                        } label: {
+                            Label(String(localized: "journal.delete"), systemImage: "trash")
+                        }
                     } label: {
-                        Image(systemName: "trash")
+                        Image(systemName: "ellipsis.circle")
                     }
-                    .accessibilityLabel(String(localized: "journal.delete"))
+                    .tint(.brown)
                 }
             }
         }
@@ -152,15 +160,13 @@ struct JournalDetailView: View {
         } message: {
             Text(polishError ?? "")
         }
-        .fullScreenCover(item: $fullScreenPhoto) { photo in
-            FullScreenPhotoView(imageData: photo.imageData)
-        }
         .onDisappear {
             speechManager.stop()
         }
         .sheet(isPresented: $isEditing) {
             NavigationStack {
                 JournalEditView(entry: entry)
+                    .interactiveDismissDisabled()
             }
         }
         .sheet(isPresented: $showSharePreview) {
@@ -173,6 +179,9 @@ struct JournalDetailView: View {
                     )
                 }
             }
+        }
+        .fullScreenCover(item: $fullScreenPhoto) { photo in
+            FullScreenPhotoView(imageData: photo.imageData)
         }
     }
 
@@ -272,16 +281,13 @@ struct JournalDetailView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 10) {
                 ForEach(photos, id: \.id) { photo in
-                    if let uiImage = UIImage(data: photo.imageData) {
-                        Button {
-                            fullScreenPhoto = photo
-                        } label: {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 120, height: 120)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                        }
+                    Button {
+                        fullScreenPhoto = photo
+                    } label: {
+                        AsyncPhotoView(imageData: photo.imageData)
+                            .scaledToFill()
+                            .frame(width: 120, height: 120)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                 }
             }

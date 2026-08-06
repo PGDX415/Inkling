@@ -24,12 +24,52 @@ final class JournalEntry {
     /// Comma-separated tag string, e.g. "旅行,工作,家人"
     var tagString: String = ""
 
-    /// Parsed tag list (read-only)
+    /// Cached display values — updated once on save, not recomputed every render
+    var displayTitle: String = ""
+    var displayPreview: String = ""
+    var displayWordCount: Int = 0
+    /// Cached parsed tags (stored as JSON string for SwiftData compatibility)
+    var cachedTagsJSON: String = "[]"
+
+    /// Parsed tag list from cache
     var tags: [String] {
-        tagString
+        guard let data = cachedTagsJSON.data(using: .utf8),
+              let result = try? JSONDecoder().decode([String].self, from: data) else {
+            return []
+        }
+        return result
+    }
+
+    /// Refresh all cached display values from content and tagString.
+    /// Call before modelContext.save() in the editor.
+    func refreshDisplayCache() {
+        // Title: first non-empty line, max 50 chars
+        let firstLine = content
+            .split(separator: "\n", omittingEmptySubsequences: true)
+            .first
+            .map(String.init) ?? ""
+        displayTitle = String(firstLine.prefix(50))
+
+        // Preview: up to 2 lines after title, max 80 chars
+        let lines = content.split(separator: "\n", omittingEmptySubsequences: true)
+        if lines.count > 1 {
+            displayPreview = String(lines.dropFirst().prefix(2).joined(separator: "\n").prefix(80))
+        } else {
+            displayPreview = String(content.prefix(80))
+        }
+
+        // Word count: non-whitespace characters
+        displayWordCount = content.filter { !$0.isWhitespace }.count
+
+        // Tags
+        let parsedTags = tagString
             .components(separatedBy: ",")
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
+        if let data = try? JSONEncoder().encode(parsedTags),
+           let json = String(data: data, encoding: .utf8) {
+            cachedTagsJSON = json
+        }
     }
 
     /// Calculate current writing streak (consecutive days with entries)
@@ -76,28 +116,14 @@ final class JournalEntry {
     /// Whether the entry is in trash (soft-deleted)
     var isDeleted: Bool { deletedAt != nil }
 
-    /// First meaningful line of content, used as list preview title
-    var title: String {
-        let firstLine = content
-            .split(separator: "\n", omittingEmptySubsequences: true)
-            .first
-            .map(String.init) ?? ""
-        return String(firstLine.prefix(50))
-    }
+    /// Cached title — first meaningful line of content
+    var title: String { displayTitle.isEmpty ? String(content.prefix(50)) : displayTitle }
 
-    /// Content preview for list display (first 2 lines after title)
-    var preview: String {
-        let lines = content.split(separator: "\n", omittingEmptySubsequences: true)
-        if lines.count > 1 {
-            return String(lines.dropFirst().prefix(2).joined(separator: "\n").prefix(80))
-        }
-        return String(content.prefix(80))
-    }
+    /// Cached preview for list display
+    var preview: String { displayPreview.isEmpty ? String(content.prefix(80)) : displayPreview }
 
-    /// Word count：counts non-whitespace characters
-    var wordCount: Int {
-        content.filter { !$0.isWhitespace }.count
-    }
+    /// Cached word count
+    var wordCount: Int { displayWordCount > 0 ? displayWordCount : content.filter { !$0.isWhitespace }.count }
 
     /// Whether the entry has meaningful content
     var isEmpty: Bool {

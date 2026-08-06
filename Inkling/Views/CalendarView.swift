@@ -2,13 +2,16 @@ import SwiftUI
 import SwiftData
 
 /// Calendar view showing a monthly grid with dates that have journal entries highlighted
+/// Uses NavigationSplitView on iPad for side-by-side layout
 struct CalendarView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Query(filter: #Predicate<JournalEntry> { $0.deletedAt == nil },
            sort: \JournalEntry.createdAt, order: .reverse) private var allEntries: [JournalEntry]
 
     @State private var currentMonth: Date = Date()
     @State private var selectedDate: Date?
+    @State private var columnVisibility = NavigationSplitViewVisibility.automatic
 
     private let calendar = Calendar.current
     private let columns = Array(repeating: GridItem(.flexible()), count: 7)
@@ -53,38 +56,128 @@ struct CalendarView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        if horizontalSizeClass == .regular {
+            // iPad: split layout — calendar on left, entries on right
+            NavigationSplitView(columnVisibility: $columnVisibility) {
+                calendarSidebar
+            } detail: {
+                entriesDetail
+            }
+            .navigationSplitViewStyle(.balanced)
+        } else {
+            // iPhone: stacked layout
+            NavigationStack {
+                calendarContent
+            }
+        }
+    }
+
+    /// Full calendar content (used standalone on iPhone, or as sidebar on iPad)
+    private var calendarContent: some View {
+        ScrollView {
             VStack(spacing: 0) {
-                // Month navigation
                 monthNavigation
-
-                // Weekday headers
                 weekdayHeaders
-
-                // Calendar grid
                 calendarGrid
-
-                // Heatmap legend
                 heatmapLegend
-
-                // Month stats
                 monthStats
-
-                Divider()
-                    .padding(.vertical, 8)
-
-                // Entries for selected date
+                Divider().padding(.vertical, 8)
                 selectedDateEntries
             }
-            .navigationTitle("calendar.title")
         }
-        .tabItem {
-            Label {
-                Text("tab.calendar")
-            } icon: {
+        .navigationTitle(String(localized: "calendar.title"))
+    }
+
+    /// iPad sidebar: calendar grid
+    private var calendarSidebar: some View {
+        calendarContent
+    }
+
+    /// iPad detail: entries for selected date (or placeholder)
+    @ViewBuilder
+    private var entriesDetail: some View {
+        if let selectedDate {
+            selectedDateDetail
+        } else {
+            VStack(spacing: 16) {
                 Image(systemName: "calendar")
+                    .font(.system(size: 48))
+                    .foregroundStyle(.brown.opacity(0.25))
+                Text(String(localized: "calendar.title"))
+                    .font(.title2)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+                Text(String(localized: "calendar.no_entries"))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color("JournalBackground"))
+        }
+    }
+
+    /// Detail view showing entries for the selected date
+    private var selectedDateDetail: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text(selectedDate!, style: .date)
+                    .font(.title3)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.brown)
+
+                Spacer()
+
+                Text(String(format: String(localized: "calendar.entries_count"), entriesForSelectedDate.count))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
+
+            if entriesForSelectedDate.isEmpty {
+                Spacer()
+                VStack(spacing: 8) {
+                    Image(systemName: "book.closed")
+                        .font(.title2)
+                        .foregroundStyle(.secondary.opacity(0.5))
+                    Text("calendar.no_entries")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                Spacer()
+            } else {
+                List {
+                    ForEach(entriesForSelectedDate) { entry in
+                        NavigationLink {
+                            JournalDetailView(entry: entry)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(entry.createdAt, style: .time)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+
+                                if !entry.title.isEmpty {
+                                    Text(entry.title)
+                                        .font(.body)
+                                        .lineLimit(1)
+                                }
+
+                                if !entry.preview.isEmpty {
+                                    Text(entry.preview)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(2)
+                                }
+                            }
+                            .padding(.vertical, 2)
+                        }
+                    }
+                }
+                .listStyle(.plain)
             }
         }
+        .navigationTitle(selectedDate != nil ? String(localized: "calendar.title") : "")
     }
 
     // MARK: - Month Navigation
@@ -206,8 +299,10 @@ struct CalendarView: View {
                         RoundedRectangle(cornerRadius: 6)
                             .fill(cellBackground(isCurrentMonth: isCurrentMonth, count: count, isSelected: isSelected))
                     )
+                    .contentShape(RoundedRectangle(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
+                .hoverEffect(.highlight)
             }
         }
         .padding(.horizontal, 12)

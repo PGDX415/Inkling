@@ -487,13 +487,6 @@ struct SettingsView: View {
                 PaywallView()
             }
         }
-        .tabItem {
-            Label {
-                Text("tab.settings")
-            } icon: {
-                Image(systemName: "gearshape")
-            }
-        }
     }
 
     // MARK: - AI Key Management
@@ -638,32 +631,36 @@ struct SettingsView: View {
     private var voiceSection: some View {
         let enhancedList = availableVoices.filter { $0.quality == .enhanced || $0.quality == .premium }
         let defaultList = availableVoices.filter { $0.quality == .default }
-        let hasVoices = !availableVoices.isEmpty
+        let allVoices = enhancedList + defaultList
+        let hasVoices = !allVoices.isEmpty
+        let selectedVoice = allVoices.first { $0.identifier == voiceIdentifier }
 
         Section {
             if hasVoices {
-                // Enhanced / Premium AI voices
-                if !enhancedList.isEmpty {
-                    ForEach(enhancedList, id: \.identifier) { voice in
-                        voiceRow(voice, language: voice.language)
+                // Collapsible voice picker
+                DisclosureGroup {
+                    // Enhanced voices
+                    if !enhancedList.isEmpty {
+                        ForEach(enhancedList, id: \.identifier) { voice in
+                            voiceRow(voice, language: voice.language)
+                        }
                     }
-                }
-
-                // Default voices in collapsible section
-                if !defaultList.isEmpty {
-                    DisclosureGroup {
+                    // Basic voices
+                    if !defaultList.isEmpty {
                         ForEach(defaultList, id: \.identifier) { voice in
                             voiceRow(voice, language: voice.language)
                         }
-                    } label: {
-                        HStack {
-                            Text("voice.basic_voices")
-                            Spacer()
-                            Text("\(defaultList.count)")
-                        }
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                     }
+                } label: {
+                    HStack {
+                        Text("settings.section_voice")
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        Text(selectedVoice?.name ?? String(localized: "voice.unavailable"))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                    .font(.subheadline)
                 }
             } else {
                 VStack(spacing: 12) {

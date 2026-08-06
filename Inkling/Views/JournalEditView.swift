@@ -28,6 +28,7 @@ struct JournalEditView: View {
     @State private var isPreviewMode = false
     @State private var showAccessorySheet = false
     @State private var showDatePickerPopover = false
+    @State private var editorActions = EditorActions()
 
     @AppStorage("aiProvider") private var aiProviderRaw = AIProvider.deepseek.rawValue
     @AppStorage("fontStyle") private var fontStyle = FontStyle.songti.rawValue
@@ -74,6 +75,26 @@ struct JournalEditView: View {
         scheduleAutoSave()
     }
 
+    /// Build editor actions once for focusedValue — prevents per-frame recreation
+    private func setupEditorActions() {
+        let viewRef = self
+        editorActions = EditorActions(
+            insertBold:     { viewRef.insertFormat(viewRef.formatOptions.first { $0.id == "bold" }!) },
+            insertItalic:   { viewRef.insertFormat(viewRef.formatOptions.first { $0.id == "italic" }!) },
+            insertStrikethrough: { viewRef.insertFormat(viewRef.formatOptions.first { $0.id == "strike" }!) },
+            insertHeading:  { viewRef.insertFormat(viewRef.formatOptions.first { $0.id == "heading" }!) },
+            insertQuote:    { viewRef.insertFormat(viewRef.formatOptions.first { $0.id == "quote" }!) },
+            insertList:     { viewRef.insertFormat(viewRef.formatOptions.first { $0.id == "list" }!) },
+            togglePreview: {
+                let ref = viewRef
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    ref.isPreviewMode.toggle()
+                    if ref.isPreviewMode { ref.isFocused = false }
+                }
+            }
+        )
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Compact metadata accessory bar
@@ -112,6 +133,7 @@ struct JournalEditView: View {
             }
         }
         .background(Color("JournalBackground"))
+        .focusedValue(\.editorActions, editorActions)
         .navigationTitle(isNewEntry
                          ? String(localized: "journal.new_entry_title")
                          : String(localized: "journal.edit_entry_title"))
@@ -228,6 +250,8 @@ struct JournalEditView: View {
             }
         }
         .task {
+            setupEditorActions()
+
             // Load existing data from the entry
             entryPhotos = entry.photos?.sorted(by: { $0.sortOrder < $1.sortOrder }) ?? []
             selectedMood = entry.mood
@@ -268,9 +292,10 @@ struct JournalEditView: View {
         .fullScreenCover(item: $fullScreenPhoto) { photo in
             FullScreenPhotoView(imageData: photo.imageData)
         }
-        .popover(isPresented: $showDatePickerPopover) {
-            datePickerPopover
-                .presentationCompactAdaptation(.popover)
+        .sheet(isPresented: $showDatePickerPopover) {
+            datePickerSheet
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $showAccessorySheet) {
             accessorySheet
@@ -510,19 +535,17 @@ struct JournalEditView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 10) {
                                 ForEach(Array(entryPhotos.enumerated()), id: \.element.id) { index, photo in
-                                    if let uiImage = UIImage(data: photo.imageData) {
+                                    Button {
+                                        fullScreenPhoto = photo
+                                    } label: {
+                                        AsyncPhotoView(imageData: photo.imageData)
+                                            .scaledToFill()
+                                            .frame(width: 80, height: 80)
+                                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                                    }
+                                    .overlay(alignment: .topTrailing) {
                                         Button {
-                                            fullScreenPhoto = photo
-                                        } label: {
-                                            Image(uiImage: uiImage)
-                                                .resizable()
-                                                .scaledToFill()
-                                                .frame(width: 80, height: 80)
-                                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                        }
-                                        .overlay(alignment: .topTrailing) {
-                                            Button {
-                                                deletePhoto(at: index)
+                                            deletePhoto(at: index)
                                             } label: {
                                                 Image(systemName: "xmark.circle.fill")
                                                     .font(.caption)
@@ -533,7 +556,7 @@ struct JournalEditView: View {
                                             .accessibilityLabel(String(localized: "a11y.remove_photo"))
                                         }
                                     }
-                                }
+
 
                                 if entryPhotos.count < maxPhotoCount {
                                     PhotosPicker(
@@ -575,9 +598,33 @@ struct JournalEditView: View {
         }
     }
 
-    // MARK: - Date Picker Popover
-    private var datePickerPopover: some View {
-        VStack(spacing: 16) {
+    // MARK: - Date Picker Sheet
+    private var datePickerSheet: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Button(String(localized: "common.cancel")) {
+                    showDatePickerPopover = false
+                }
+                .foregroundStyle(.secondary)
+
+                Spacer()
+
+                Text(String(localized: "calendar.title"))
+                    .font(.headline)
+
+                Spacer()
+
+                Button(String(localized: "common.done")) {
+                    showDatePickerPopover = false
+                }
+                .fontWeight(.medium)
+                .foregroundStyle(.brown)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+
+            Divider()
+
             DatePicker(
                 "",
                 selection: $entryDate,
@@ -585,6 +632,7 @@ struct JournalEditView: View {
             )
             .datePickerStyle(.graphical)
             .labelsHidden()
+            .padding(.horizontal, 12)
             .onChange(of: entryDate) { _, newDate in
                 entry.createdAt = newDate
                 entry.modifiedAt = Date()
@@ -597,23 +645,9 @@ struct JournalEditView: View {
                 scheduleAutoSave()
             }
 
-            HStack {
-                Button(String(localized: "common.cancel")) {
-                    showDatePickerPopover = false
-                }
-                .foregroundStyle(.secondary)
-
-                Spacer()
-
-                Button(String(localized: "common.done")) {
-                    showDatePickerPopover = false
-                }
-                .fontWeight(.medium)
-            }
-            .padding(.horizontal)
+            Spacer()
         }
-        .padding()
-        .frame(width: 320)
+        .background(Color("JournalBackground"))
     }
 
     private var savedIndicator: some View {
@@ -816,6 +850,7 @@ struct JournalEditView: View {
         entry.modifiedAt = Date()
         entry.mood = selectedMood
         entry.tagString = entryTags.joined(separator: ",")
+        entry.refreshDisplayCache()
 
         // Sync photos: remove old ones, insert current ones
         if let existingPhotos = entry.photos {
@@ -870,6 +905,8 @@ extension View {
                 RoundedRectangle(cornerRadius: 16)
                     .fill(active ? Color.brown : Color.brown.opacity(0.08))
             )
+            .contentShape(RoundedRectangle(cornerRadius: 16))
+            .hoverEffect(.highlight)
     }
 }
 
